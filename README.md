@@ -189,7 +189,7 @@ Conceptos: cambios backward-compatible, seams, “release ≠ deploy”.
 Práctica: ejemplo de cambio compatible (API/DB).  
 Lectura: diseño para deploy, independencia de despliegue.
 
-## Sesión 6 — Deployment Pipeline (diseño serio)
+## Sesión 6 — Deployment Pipeline
 Construimos la idea de “pipeline” como mecanismo de feedback y control de riesgo, no como un script. Vemos buenas prácticas: stages, separación CI/CD, artefactos, promoción, trazabilidad, y gates de calidad. Luego aterrizamos esto en el proyecto guía: cómo se automatiza el despliegue a un entorno (staging) y cómo se valida post-deploy (smoke tests / healthchecks) para evitar “deploy exitoso pero sistema roto”. *(Si querés mantener un ecosistema Blazor/API/SQL/Mobile, acá se presenta como mapa general y se define qué parte es core y qué queda como extensión.)*
 
 Literatura: stages, quality gates, fast feedback, artifact promotion.  
@@ -197,7 +197,7 @@ Conceptos: separación CI/CD, ambientes, trazabilidad.
 Práctica: CD a staging + smoke test post-deploy.  
 Lectura: deployment pipeline patterns.
 
-## Sesión 7 — DB en CD (el infierno clásico)
+## Sesión 7 — Integración de scripts DDL al esquema de despliegue contínuo
 Retomamos **Accelerate** con más detalle, pero ahora con contexto: conectamos prácticas concretas (branching, pruebas, automatización, despliegue, observabilidad) con impacto en métricas DORA. La intención es que el alumno entienda que los indicadores no son “reporting”, sino una forma de decidir qué mejorar primero. También discutimos limitaciones típicas al medir (qué se rompe cuando hay procesos manuales, ambientes inestables o releases grandes).
 
 Literatura: deployments de DB, riesgos, estrategias.  
