@@ -1,3 +1,5 @@
+# Integración y entrega continua
+
 ## Estructura del curso
 
 #### Finalidad: ¿Para qué?
@@ -76,7 +78,7 @@ Algunos ejemplos:
 
 --------
 
-## Introducción
+# Introducción
 
 #### Objetivos de la práctica
 
@@ -213,9 +215,9 @@ Automatizar un proceso de entrega que antes fue comprendido, simplificado y mode
 
 ![](image1.jpg)
 
----
+--------
 
-## ¿Cómo trabajar para integrar y entregar con frecuencia?
+# ¿Cómo trabajar para integrar y entregar con frecuencia?
 
 En esta sesión se abordan las condiciones que hacen posible la integración continua como práctica sostenida. Reducir el tamaño de lote, limitar el trabajo en curso y trabajar cerca de trunk mejora el flujo de entrega, pero esas prácticas sólo son viables cuando el diseño del software acompaña. Si el sistema presenta alto acoplamiento, responsabilidades confusas o complejidad innecesaria, incluso cambios pequeños se vuelven costosos de probar, difíciles de integrar y riesgosos de desplegar.
 
@@ -292,4 +294,105 @@ Así, la discusión sobre estrategias de branch no se limita a elegir entre trun
 
 En este marco, la estrategia de branch más compatible con CI/CD es aquella que minimiza el tiempo entre desarrollo e integración. Pero para que eso sea sostenible, el software debe ofrecer condiciones que permitan trabajo concurrente, pruebas rápidas y cambios acotados. De lo contrario, la estrategia elegida en el repositorio no resuelve el problema de fondo, sino que apenas compensa, de manera parcial, limitaciones del diseño.
 
----
+--------
+
+# Desempeño en la entrega de software: el enfoque de Accelerate
+
+#### Presentación del trabajo de investigación
+
+Accelerate se apoya en un trabajo de investigación desarrollado durante cuatro años, iniciado a fines de 2013, con el objetivo de responder una pregunta bastante concreta: qué capacidades y prácticas explican un mejor desempeño en la entrega de software y cómo ese desempeño impacta en los resultados organizacionales. Los autores aclaran que no quisieron basarse solo en anécdotas o casos aislados, sino usar métodos rigurosos, propios de investigación académica, pero llevados al terreno profesional.
+
+Metodológicamente, el estudio se basó en encuestas cuantitativas de corte transversal. A lo largo del programa reunieron más de 23.000 respuestas, provenientes de más de 2.000 organizaciones de distintos tamaños, industrias y contextos tecnológicos: startups, grandes empresas, sectores regulados, entornos legacy y también desarrollos greenfield.
+
+Otro punto importante es que el trabajo fue iterativo. No hicieron una sola encuesta y sacaron conclusiones definitivas. Cada año refinaron el modelo, revalidaron hallazgos previos y ampliaron las preguntas:
+- en 2014 buscaron definir y medir software delivery performance, y ver su relación con desempeño organizacional;
+- en 2015 profundizaron el efecto de automatización y prácticas Lean;
+- en 2016 ampliaron la investigación a seguridad, trunk-based development, test data management y gestión de producto;
+- y en 2017 incorporaron arquitectura, liderazgo transformacional y resultados en organizaciones sin fines de lucro.
+
+El valor de Accelerate no está solo en las conclusiones, sino en que intenta demostrar con evidencia empírica, análisis estadístico y una muestra amplia que ciertas capacidades técnicas, culturales y organizacionales se asocian de manera consistente con mejores resultados en software delivery y en desempeño organizacional.
+
+#### Resumen general de Accelerate
+
+La tesis central del libro es que el desempeño en entrega de software sí puede medirse de manera rigurosa y que ese desempeño tiene impacto real en el negocio u organización. Se trata de desarrollar capacidades técnicas, organizacionales y culturales que mejoren resultados observables. El libro sostiene además que los equipos de alto desempeño no son exitosos por trabajar más fuerte, sino por trabajar con mejor diseño del sistema de trabajo: lotes más pequeños, automatización, feedback rápido, arquitectura desacoplada, cultura generativa y liderazgo que habilita mejora continua.
+
+>El informe señala que los ejecutivos son especialmente propensos a sobreestimar su progreso en comparación con quienes realmente realizan el trabajo.
+>
+>Estos hallazgos sobre la discrepancia entre las estimaciones de madurez de DevOps realizadas por ejecutivos y profesionales resaltan dos aspectos que los líderes suelen pasar por alto. Primero, si asumimos que las estimaciones de madurez o capacidades de DevOps de los profesionales son más precisas —porque están más cerca del trabajo—, el potencial de generación de valor y crecimiento dentro de las organizaciones es mucho mayor de lo que los ejecutivos perciben actualmente.
+>
+>Segundo, esta discrepancia pone de manifiesto la necesidad de medir con precisión las capacidades de DevOps y comunicar los resultados de estas mediciones a los líderes, quienes pueden utilizarlos para tomar decisiones y definir la estrategia sobre la postura tecnológica de su organización.
+
+#### Las 4 métricas principales
+
+El aporte más conocido de Accelerate es la definición de cuatro métricas para evaluar **software delivery performance**. El libro las elige porque son métricas de resultado, no de actividad; además obligan a colaborar a desarrollo, operaciones y el resto del sistema, en lugar de optimizar sectores por separado.
+
+##### Lead time for changes
+
+Es el tiempo que pasa desde que el código se commitea hasta que corre exitosamente en producción. Mide la capacidad real de convertir trabajo en valor operativo. Además, un lead time corto no solo permite entregar features antes, sino también corregir incidentes o defectos con rapidez y confianza.
+
+>Los plazos de entrega de productos más cortos son mejores, ya que permiten obtener comentarios más rápidos sobre lo que estamos desarrollando y corregir el rumbo con mayor rapidez. Los plazos de entrega cortos también son importantes cuando hay un defecto o una interrupción del servicio y necesitamos ofrecer una solución de forma rápida y con alta fiabilidad.
+
+>Medimos el tiempo de entrega del producto como el tiempo que transcurre desde que el código se confirma hasta que el código se ejecuta correctamente en producción, y pedimos a los participantes de la encuesta que eligieran una de las siguientes opciones:
+>- menos de una hora
+>- menos de un día
+>- entre un día y una semana
+>- entre una semana y un mes
+>- entre un mes y seis meses
+>- más de seis meses
+
+##### Deployment frequency
+
+Es la frecuencia con la que el equipo despliega a producción. Cuanto más frecuente es el despliegue, más pequeño suele ser el batch. Eso reduce riesgo, acelera feedback y permite corregir dirección antes. No mide “cuánto produce” un equipo en abstracto, sino cuán seguido convierte cambios en software real disponible para usuarios.
+
+##### Time to restore service
+
+Es el tiempo que tarda la organización en restaurar el servicio cuando ocurre un incidente o degradación. En sistemas modernos, el fallo no desaparece: lo importante no es imaginar que nunca va a ocurrir, sino cuánto tarda el sistema socio-técnico en recuperarse. Esta métrica expresa resiliencia operativa.
+
+##### Change failure rate
+
+Es el porcentaje de cambios en producción que terminan generando degradación, incidentes o necesidad de remediación, como rollback, hotfix o patch. Es la métrica de calidad de cambio. Sirve para mostrar si la velocidad está sostenida por calidad o si se está “comprando rapidez” a costa de inestabilidad.
+
+Qué dicen esas 4 métricas juntas
+
+El libro no usa estas métricas de forma aislada. Las combina para mostrar dos dimensiones del desempeño:
+
+- **tiempo**: lead time y deployment frequency
+- **estabilidad**: time to restore service y change failure rate
+
+No existe un trade-off (compensación) inevitable entre velocidad y estabilidad. Los equipos de alto desempeño mejoran en ambas cosas a la vez.
+
+>En 2017, descubrimos que, en comparación con los de bajo rendimiento, los de alto rendimiento presentaban:
+>- Despliegues de código 46 veces más frecuentes
+>- Tiempo de entrega 440 veces más rápido desde la confirmación hasta el despliegue
+>- Tiempo medio de recuperación tras un tiempo de inactividad 170 veces más rápido
+>- Tasa de fallos en los cambios 5 veces menor (1/5 de probabilidad de que un cambio falle)
+>
+> Accelerate
+
+Lo que muestran tus resaltados
+
+Tus marcas no están distribuidas al azar; forman una lectura bastante coherente del libro.
+
+Primero, resaltaste la parte donde el libro muestra que los ejecutivos suelen sobreestimar el nivel real de avance respecto de quienes están cerca del trabajo. Ahí el mensaje es claro: sin medición seria, la dirección puede creer que la transformación avanza más de lo que efectivamente avanza. Esto conecta directamente con la necesidad de usar métricas concretas y visibles.
+
+Segundo, resaltaste toda la crítica a los maturity models. Ahí el libro plantea que no sirve pensar “llegamos a nivel 3” o “ya maduramos”, porque el entorno cambia constantemente. Lo importante es desarrollar capacidades que mejoren outcomes. Esa idea es estructural en Accelerate: el objetivo no es “verse moderno”, sino tener mejor desempeño medible.
+
+Tercero, marcaste la discusión sobre utilización. Ese pasaje es muy importante porque rompe con una intuición gerencial muy común: creer que tener a todos ocupados al máximo mejora productividad. El libro sostiene lo contrario: sin slack, no hay espacio para absorber variación, trabajo no planificado ni mejora, y por eso empeora el lead time.
+
+Cuarto, tus resaltados en el capítulo técnico apuntan a otra idea fuerte del libro: las prácticas técnicas no son accesorias. Muchas adopciones ágiles priorizaron ceremonias o gestión visual, pero Accelerate muestra que prácticas como integración continua, control de versiones, trunk-based development, automatización y continuous delivery son determinantes para el rendimiento real del sistema.
+
+Qué explica el libro además de las 4 métricas
+
+El libro argumenta que esas métricas mejoran cuando la organización desarrolla ciertas capacidades. Resume 24 capacidades agrupadas en cinco áreas: continuous delivery, arquitectura, producto/proceso, lean management/monitoring y cultura. Entre las más decisivas aparecen version control, deployment automation, continuous integration, test automation, trunk-based development, arquitectura desacoplada, equipos empoderados, trabajo en lotes pequeños, feedback de cliente, límites de WIP, monitoreo y cultura organizacional generativa.
+
+En otras palabras: las 4 métricas son el tablero; las capacidades son los palancas que lo mueven.
+
+Conclusión sintética
+
+Si tuviera que condensar Accelerate en una idea académicamente precisa, sería esta:
+
+el rendimiento en entrega de software puede medirse objetivamente mediante cuatro métricas de resultado, y mejora de forma consistente cuando la organización desarrolla capacidades técnicas, arquitectónicas, de gestión y culturales alineadas con flujo rápido, lotes pequeños, calidad incorporada y aprendizaje continuo.
+
+Y si lo bajo todavía más a tu lectura marcada del PDF, diría que tus resaltados enfatizan este mensaje:
+
+no alcanza con “hacer Agile/DevOps”; hay que medir outcomes reales, enfocarse en capacidades concretas y construir un sistema donde rapidez y estabilidad se refuercen mutuamente.
