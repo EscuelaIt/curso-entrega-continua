@@ -132,11 +132,11 @@ Despliegue continuo, es un caso más extremo: todo cambio que pasa satisfactoria
 
 No es una cadena de tareas, sino la representación ejecutable del proceso de entrega. Cada etapa del pipeline responde una pregunta distinta sobre el cambio:
 
-1- ¿compila y se integra?
-2- ¿rompe comportamiento esperado?
-3- ¿cumple restricciones no funcionales?
-4- ¿puede desplegarse con seguridad?
-5- ¿está listo para ser promovido?
+1. ¿compila y se integra?
+2. ¿rompe comportamiento esperado?
+3. ¿cumple restricciones no funcionales?
+4. ¿puede desplegarse con seguridad?
+5. ¿está listo para ser promovido?
 
 Lo importante es que el pipeline cumple una doble función. Por un lado, da feedback técnico temprano. Por otro, hace visible y trazable el proceso de entrega. El pipeline, en ese sentido, no es solo automatización: es una forma de hacer explícito qué evidencia exigimos antes de confiar en un cambio. *Continuous Delivery* lo presenta como “Anatomy of the Deployment Pipeline”: como el mecanismo central que estructura la entrega de software.
 
