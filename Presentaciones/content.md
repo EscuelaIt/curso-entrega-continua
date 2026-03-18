@@ -65,11 +65,11 @@ Algunos ejemplos:
 
 - [Continuous Delivery](https://martinfowler.com/books/continuousDelivery.html)
 - [Accelerate](https://www.amazon.com/Accelerate-Software-Performing-Technology-Organizations/dp/1942788339)
-- [Proyecto Liga Libre API](https://github.com/emigallo-edu/liga-libre-api)
-- [Proyecto Liga Libre Web](https://github.com/emigallo-edu/liga-libre-web)
+- [Proyecto Liga Libre](https://github.com/emigallo-edu/liga-libre)
 
 
 #### Conocimiento necesario
+
 - [Master - Diseño OO](https://escuela.it/cursos/curso-de-diseno-orientado-a-objetos/estudiar)
 - [Master - Arquitecturas](https://escuela.it/cursos/curso-arquitecturas-software-agiles-pesadas/estudiar)
 - [Master - Pruebas](https://escuela.it/cursos/pruebas-software/estudiar)
@@ -227,9 +227,9 @@ Por el contrario, cuando el software concentra demasiadas responsabilidades, dep
 
 La clase busca mostrar, entonces, que el flujo de trabajo y el diseño del software no son dimensiones separadas. La reducción del tamaño de lote, la limitación del *trabajo en progreso* y el trabajo cercano a trunk necesitan de un diseño que mantenga bajo el costo de cambio. En este marco, los principios de diseño de software funcionan como referencia para evaluar si el sistema está siendo construido de una manera compatible con una estrategia real de integración continua.
 
-#### Para ponernos en sintonía cuando hablamos de un correcto diseño:
+### Para ponernos en sintonía cuando hablamos de un correcto diseño:
 
-###### Principios de la POO
+#### Principios de la POO
 
 - Abstracción
 - Encapsulamiento
@@ -238,7 +238,7 @@ La clase busca mostrar, entonces, que el flujo de trabajo y el diseño del softw
 
 [Fuente](https://github.com/emigallo-edu/oop/blob/main/Presentaciones/Content.md)
 
-###### Algunos principios de diseño
+#### Algunos principios de diseño
 - abierto-cerrado de Bertrand Meyer (la 'O' de SOLID)
 - sustitución de Liskov (la 'L' de SOLID)
 - bajo acoplamiento
@@ -246,7 +246,7 @@ La clase busca mostrar, entonces, que el flujo de trabajo y el diseño del softw
 - diseño suficiente
 - sencillez
 
-###### Cohesión de paquetes
+#### Cohesión de paquetes
 *Robert C. Martin - Clean Architecture*
 
 **REP — Reuse/Release Equivalence Principle**
