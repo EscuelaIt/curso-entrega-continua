@@ -105,7 +105,7 @@ No significa que todo se publique automáticamente, sino que el equipo no quede 
 >
 >- El software es desplegable durante todo su ciclo de vida.
 >- El equipo prioriza la disponibilidad del software sobre el desarrollo de nuevas funcionalidades.
->- Cualquier persona puede obtener retroalimentación rápida y automatizada sobre la preparación > -Para producción de sus sistemas cada vez que se realiza un cambio.
+>- Cualquier persona puede obtener retroalimentación rápida y automatizada sobre la preparación para producción de sus sistemas cada vez que se realiza un cambio.
 > - Se pueden realizar implementaciones automáticas de cualquier versión del software en cualquier entorno, bajo demanda.
 >
 > [Martin Fowler](https://martinfowler.com/bliki/ContinuousDelivery.html)
