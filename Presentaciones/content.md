@@ -239,38 +239,40 @@ La clase busca mostrar, entonces, que el flujo de trabajo y el diseño del softw
 [Fuente](https://github.com/emigallo-edu/oop/blob/main/Presentaciones/Content.md)
 
 #### Algunos principios de diseño
+- alta cohesión (la 'S' de SOLID)
 - abierto-cerrado de Bertrand Meyer (la 'O' de SOLID)
 - sustitución de Liskov (la 'L' de SOLID)
 - bajo acoplamiento
-- alta cohesión (la 'S' de SOLID)
 - diseño suficiente
 - sencillez
 
 #### Cohesión de paquetes
+
+###### REP - Reuse/Release Equivalence Principle
+- El principio de equivalencia entre reutilización y liberación.
+- La idea es que la unidad que reutilizás debería coincidir con la unidad que liberás/versionás.
+- Si un conjunto de clases se reutiliza junto, debería formar un mismo paquete/componente publicable como una unidad coherente.
+
+*La unidad que reutilizás debería coincidir con la unidad que liberás/versionás.*
+
+###### CCP - Common Closure Principle
+- El principio de cierre común.
+- Las clases que cambian por las mismas razones deberían agruparse en el mismo paquete.
+- Si varias clases suelen modificarse juntas ante un mismo tipo de cambio, conviene que estén cerradas dentro del mismo componente.
+- Eso reduce el impacto de los cambios y mejora mantenibilidad.
+
+*Las clases que cambian por la misma razón deberían agruparse juntas.*
+
+###### CRP - Common Reuse Principle
+- El principio de reutilización común.
+- Las clases que se reutilizan juntas deberían estar juntas.
+- Y, en sentido inverso, no deberías depender de clases que no necesitás.
+- Si un paquete obliga a importar muchas clases que no usás, está mal diseñado.
+- Busca evitar dependencias innecesarias.
+
+*Las clases que cambian por la misma razón deberían agruparse juntas.*
+
 *Robert C. Martin - Clean Architecture*
-
-**REP — Reuse/Release Equivalence Principle**
-El principio de equivalencia entre reutilización y liberación.
-La idea es que la unidad que reutilizás debería coincidir con la unidad que liberás/versionás.
-Si un conjunto de clases se reutiliza junto, debería formar un mismo paquete/componente publicable como una unidad coherente.
-
-> la unidad que reutilizás debería coincidir con la unidad que liberás/versionás.
-
-**CCP — Common Closure Principle**
-El principio de cierre común.
-Las clases que cambian por las mismas razones deberían agruparse en el mismo paquete.
-Si varias clases suelen modificarse juntas ante un mismo tipo de cambio, conviene que estén cerradas dentro del mismo componente.
-Eso reduce el impacto de los cambios y mejora mantenibilidad.
-Ejemplo: las clases de un sistema de facturación.
->las clases que cambian por la misma razón deberían agruparse juntas.
-
-**CRP — Common Reuse Principle**
-El principio de reutilización común.
-Las clases que se reutilizan juntas deberían estar juntas.
-Y, en sentido inverso, no deberías depender de clases que no necesitás.
-Si un paquete obliga a importar muchas clases que no usás, está mal diseñado.
-Esto busca evitar dependencias innecesarias.
-> las clases que cambian por la misma razón deberían agruparse juntas.
 
 #### Propiedades deseables del diseño
 
