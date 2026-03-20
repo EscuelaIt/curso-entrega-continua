@@ -183,7 +183,7 @@ Los cambios grandes son más difíciles de entender, probar, integrar y revertir
 
 ###### 3. Diseñar para testabilidad
 
-La testabilidad no aparece como una virtud secundaria, sino como una condición central de entregabilidad. Un sistema apto para CI/CD debe poder validarse rápida y repetidamente mediante pruebas automatizadas en distintos niveles. Eso implica favorecer diseños con responsabilidades claras, dependencias controladas, facilidad de aislamiento y comportamiento observable. Si un sistema es difícil de probar, también será difícil de integrar y de liberar con confianza.
+La testabilidad no aparece como una virtud secundaria, sino como una condición central de entregabilidad. Un sistema apto para *Entrega Continua* debe poder validarse rápida y repetidamente mediante pruebas automatizadas en distintos niveles. Eso implica favorecer diseños con responsabilidades claras, dependencias controladas, facilidad de aislamiento y comportamiento observable. Si un sistema es difícil de probar, también será difícil de integrar y de liberar con confianza.
 
 ###### 4. Reducir acoplamiento y gestionar explícitamente dependencias
 
@@ -191,15 +191,15 @@ El acoplamiento excesivo vuelve cada cambio más costoso. Un principio fuerte, e
 
 ###### 5. Separar deploy de release
 
-Una aplicación bien diseñada para CI/CD debería permitir desplegar sin necesariamente exponer inmediatamente toda nueva funcionalidad. Esa separación entre movimiento técnico del software y decisión de negocio sobre su exposición reduce riesgo y facilita cambios más frecuentes. De ahí se desprenden después mecanismos como toggles o estrategias progresivas de release, pero el principio previo es de diseño: no obligar a que cada despliegue implique exposición inmediata e irreversible.
+Una aplicación bien diseñada para *Entrega Continua* debería permitir desplegar sin necesariamente exponer inmediatamente toda nueva funcionalidad. Esa separación entre movimiento técnico del software y decisión de negocio sobre su exposición reduce riesgo y facilita cambios más frecuentes. De ahí se desprenden después mecanismos como toggles o estrategias progresivas de release, pero el principio previo es de diseño: no obligar a que cada despliegue implique exposición inmediata e irreversible.
 
 ###### 6. Diseñar para compatibilidad evolutiva
 
-Los sistemas que soportan CI/CD deben evolucionar de forma compatible, evitando cambios destructivos que exijan sincronización perfecta entre todos los componentes. Esto vale para APIs, contratos entre componentes y, de manera muy marcada, para esquemas de base de datos. El principio general es privilegiar cambios aditivos y reversibles frente a cambios abruptos y destructivos.
+Los sistemas que soportan *Entrega Continua* deben evolucionar de forma compatible, evitando cambios destructivos que exijan sincronización perfecta entre todos los componentes. Esto vale para APIs, contratos entre componentes y, de manera muy marcada, para esquemas de base de datos. El principio general es privilegiar cambios aditivos y reversibles frente a cambios abruptos y destructivos.
 
 ###### 7. Tratar la configuración, la infraestructura y los datos como parte del sistema
 
-La capacidad de delivery depende también de configuración, infraestructura, scripts de despliegue y base de datos. Por eso, un diseño compatible con CI/CD debe minimizar dependencias implícitas del entorno, externalizar adecuadamente configuración y hacer que los cambios en esos elementos sean versionables, repetibles y automatizables. En términos de diseño, esto significa evitar aplicaciones que “funcionan solo en un ambiente particular” o que dependen de intervención manual opaca para correr correctamente.
+La capacidad de delivery depende también de configuración, infraestructura, scripts de despliegue y base de datos. Por eso, un diseño compatible con *Entrega Continua* debe minimizar dependencias implícitas del entorno, externalizar adecuadamente configuración y hacer que los cambios en esos elementos sean versionables, repetibles y automatizables. En términos de diseño, esto significa evitar aplicaciones que “funcionan solo en un ambiente particular” o que dependen de intervención manual opaca para correr correctamente.
 
 ###### 8. Construir binarios/artefactos verdaderamente desplegables
 
@@ -207,11 +207,11 @@ El build debe producir artefactos que puedan copiarse a una máquina correctamen
 
 ###### 9. Hacer visible el comportamiento del sistema en operación
 
-Un diseño compatible con CI/CD es que la aplicación debe exponer suficientes señales para verificar si está viva, lista y funcionando razonablemente tras un despliegue. En términos modernos, esto implica diseñar pensando en health, readiness, logging y monitoreo, porque un sistema que no puede observarse tampoco puede recuperarse rápido cuando un cambio falla.
+Un diseño compatible con *Entrega Continua* es que la aplicación debe exponer suficientes señales para verificar si está viva, lista y funcionando razonablemente tras un despliegue. En términos modernos, esto implica diseñar pensando en health, readiness, logging y monitoreo, porque un sistema que no puede observarse tampoco puede recuperarse rápido cuando un cambio falla.
 
 ###### 10. Automatizar lo repetible, pero sobre un proceso primero entendido
 
-Automatizar un proceso de entrega que antes fue comprendido, simplificado y modelado. Como principio de diseño organizacional y técnico, esto implica evitar pasos manuales opacos, dependencias tácitas y conocimiento tribal en el proceso de build, test y deploy. Un sistema bien diseñado para CI/CD presupone repetibilidad.
+Automatizar un proceso de entrega que antes fue comprendido, simplificado y modelado. Como principio de diseño organizacional y técnico, esto implica evitar pasos manuales opacos, dependencias tácitas y conocimiento tribal en el proceso de build, test y deploy. Un sistema bien diseñado para *Entrega Continua* presupone repetibilidad.
 
 ![](image1.jpg)
 
@@ -219,28 +219,26 @@ Automatizar un proceso de entrega que antes fue comprendido, simplificado y mode
 
 # ¿Cómo trabajar para integrar y entregar con frecuencia?
 
-En esta sesión se abordan las condiciones que hacen posible la integración continua como práctica sostenida. Reducir el tamaño de lote, limitar el trabajo en curso y trabajar cerca de trunk mejora el flujo de entrega, pero esas prácticas sólo son viables cuando el diseño del software acompaña. Si el sistema presenta alto acoplamiento, responsabilidades confusas o complejidad innecesaria, incluso cambios pequeños se vuelven costosos de probar, difíciles de integrar y riesgosos de desplegar.
+En esta sesión se abordan las condiciones que hacen posible la integración continua como práctica sostenida.
+Reducir el tamaño de lote, limitar el trabajo en curso y trabajar cerca de la *rama principal de desarrollo* mejoran el flujo de entrega, pero esas prácticas sólo son viables cuando el diseño del software y del sistema tiene determinados atributos. Si el sistema presenta alto acoplamiento, responsabilidades confusas o complejidad innecesaria, incluso cambios pequeños se vuelven costosos de probar, difíciles de integrar y riesgosos de desplegar.
 
 Desde esta perspectiva, la integración continua no depende únicamente de herramientas o de la existencia de un pipeline. También exige determinadas propiedades del software: cambios localizados, dependencias controladas, validación rápida y un costo de cambio razonable.
 
-En particular, se pone en relación la integración continua con criterios de diseño sólidos. La importancia de estos enfoques, en este contexto, no radica en su formulación teórica, sino en el efecto práctico que producen sobre la capacidad de cambiar, probar e integrar con bajo riesgo. Un diseño con responsabilidades bien asignadas, bajo acoplamiento, cohesión adecuada y complejidad controlada favorece la construcción de pruebas automatizadas confiables, reduce el impacto colateral de los cambios y facilita una estrategia de ramas cortas e integración temprana.
+Un diseño con responsabilidades bien asignadas, bajo acoplamiento, cohesión adecuada y complejidad controlada favorece la construcción de pruebas automatizadas confiables, reduce el impacto colateral de los cambios y facilita una estrategia de ramas cortas e integración temprana.
 
-Por el contrario, cuando el software concentra demasiadas responsabilidades, depende fuertemente de detalles de infraestructura o incorpora abstracciones innecesarias, el trabajo de integración pierde fluidez. Los cambios requieren más coordinación, las pruebas se vuelven más difíciles de construir o mantener, y el feedback automático deja de ser rápido y confiable. En estas condiciones, la integración continua tiende a degradarse en una práctica nominal: existe pipeline, pero no existe verdadera capacidad de integrar con frecuencia y seguridad.
+Cuando el software concentra demasiadas responsabilidades, depende fuertemente de detalles de infraestructura o incorpora abstracciones innecesarias, el trabajo de integración pierde fluidez. Los cambios requieren más coordinación, las pruebas se vuelven más difíciles de construir o mantener, y el feedback automático deja de ser rápido y confiable. En estas condiciones, la integración continua tiende a degradarse en una práctica nominal: existe pipeline, pero no existe verdadera capacidad de integrar con frecuencia y seguridad.
 
-La clase busca mostrar, entonces, que el flujo de trabajo y el diseño del software no son dimensiones separadas. La reducción del tamaño de lote, la limitación del *trabajo en progreso* y el trabajo cercano a trunk necesitan de un diseño que mantenga bajo el costo de cambio. En este marco, los principios de diseño de software funcionan como referencia para evaluar si el sistema está siendo construido de una manera compatible con una estrategia real de integración continua.
+El flujo de trabajo y el diseño del software no son dimensiones separadas. La reducción del tamaño de lote, la limitación del *trabajo en progreso* y el trabajo cercano a *rama principal de desarrollo* necesitan de un diseño que mantenga bajo el costo de cambio. En este marco, los principios de diseño de software funcionan como referencia para evaluar si el sistema está siendo construido de una manera compatible con una estrategia real de integración continua.
 
-### Para ponernos en sintonía cuando hablamos de un correcto diseño:
+### Para ponernos en sintonía cuando hablamos de un correcto diseño
 
-#### Principios de la POO
-
-- Abstracción
-- Encapsulamiento
-- Herencia
-- Polimorfismo.
-
-[Fuente](https://github.com/emigallo-edu/oop/blob/main/Presentaciones/Content.md)
+- [Código legible y entendible](https://github.com/emigallo-edu/software-design/blob/main/clean-code/content.md)
+- [Programación Orientada a Objetos](https://github.com/emigallo-edu/software-design/blob/main/oop/Content.md)
+- [Relaciones entre clases](https://github.com/emigallo-edu/software-design/blob/main/classes-types-relations/content.md)
+- [GRASP](https://github.com/emigallo-edu/software-design/blob/main/grasp/content.md)
 
 #### Algunos principios de diseño
+
 - alta cohesión (la 'S' de SOLID)
 - abierto-cerrado de Bertrand Meyer (la 'O' de SOLID)
 - sustitución de Liskov (la 'L' de SOLID)
@@ -248,43 +246,31 @@ La clase busca mostrar, entonces, que el flujo de trabajo y el diseño del softw
 - diseño suficiente
 - sencillez
 
-#### Cohesión de paquetes
+[Charla abierta de Luis Fernández](https://www.youtube.com/watch?v=vrTfxHcYUnk)
 
-###### REP - Reuse/Release Equivalence Principle
-- El principio de equivalencia entre reutilización y liberación.
-- La idea es que la unidad que reutilizás debería coincidir con la unidad que liberás/versionás.
-- Si un conjunto de clases se reutiliza junto, debería formar un mismo paquete/componente publicable como una unidad coherente.
+#### Code Smell
 
-*La unidad que reutilizás debería coincidir con la unidad que liberás/versionás.*
+Un **code smell** es una indicación superficial que generalmente corresponde a un problema más profundo en el sistema.
 
-###### CCP - Common Closure Principle
-- El principio de cierre común.
-- Las clases que cambian por las mismas razones deberían agruparse en el mismo paquete.
-- Si varias clases suelen modificarse juntas ante un mismo tipo de cambio, conviene que estén cerradas dentro del mismo componente.
-- Eso reduce el impacto de los cambios y mejora mantenibilidad.
+Es algo que se detecta rápidamente y con facilidad. Pero no siempre indican un problema: un método de más 15-20 líneas de çodigo nos llama la atención muy rapidamente, pero algunos métodos largos funcionan correctamente.
 
-*Las clases que cambian por la misma razón deberían agruparse juntas.*
+Los **code smell** no son malos en sí mismos, sino que suelen ser un indicador de un problema, no el problema en sí.
 
-###### CRP - Common Reuse Principle
-- El principio de reutilización común.
-- Las clases que se reutilizan juntas deberían estar juntas.
-- Y, en sentido inverso, no deberías depender de clases que no necesitás.
-- Si un paquete obliga a importar muchas clases que no usás, está mal diseñado.
-- Busca evitar dependencias innecesarias.
+[Fuente](https://martinfowler.com/bliki/CodeSmell.html)
 
-*Las clases que cambian por la misma razón deberían agruparse juntas.*
+#### Síntomas de un diseño incompatible con integración frecuente
 
-*Robert C. Martin - Clean Architecture*
-
-#### Propiedades deseables del diseño
-
-Entre las propiedades de diseño que favorecen un esquema de integración continua se destacan la claridad en la asignación de responsabilidades, el bajo acoplamiento entre componentes, la alta cohesión dentro de cada unidad, la simplicidad estructural, la explicitud de las dependencias y la ausencia de complejidad anticipada que todavía no responde a una necesidad real. Estas cualidades no garantizan por sí mismas una buena integración continua, pero sí reducen significativamente el costo de cambio y aumentan la capacidad del equipo para verificar e integrar con rapidez.
-
-En este sentido, los principios de diseño no se consideran un fin en sí mismo, sino un medio para producir software más fácil de modificar, más fácil de probar y más seguro de integrar. La integración continua, entendida de forma rigurosa, requiere precisamente esas condiciones.
+- cambios chicos de negocio que obligan a tocar muchas clases;
+- pruebas que requieren demasiada infraestructura;
+- conflictos de merge frecuentes sobre los mismos archivos;
+- necesidad de coordinar demasiado entre personas para cerrar una tarea;
+- miedo a integrar porque “todavía no está todo listo”.
 
 #### Estrategias de branch
 
-Las estrategias de branch no deben analizarse únicamente como una convención de uso de Git, sino como una consecuencia de la forma en que el software está diseñado y del modo en que el equipo organiza su trabajo. En un esquema de CI/CD, las estrategias que mejor funcionan son aquellas que favorecen integración temprana, ramas de vida corta y cambios pequeños. Sin embargo, esto sólo es viable cuando el sistema permite que distintas personas trabajen en paralelo con un nivel razonable de independencia.
+> Un lote de cambio pequeño es una unidad de cambio cuyo alcance permite integrarla pronto, probarla con rapidez, aislar sus efectos con claridad y liberarla con bajo riesgo.
+
+Las estrategias de branch no deben analizarse únicamente como una convención de uso de Git, sino como una consecuencia de la forma en que el software está diseñado y del modo en que el equipo organiza su trabajo. En un esquema de *Entrega Continua*, las estrategias que mejor funcionan son aquellas que favorecen integración temprana, ramas de vida corta y cambios pequeños. Sin embargo, esto sólo es viable cuando el sistema permite que distintas personas trabajen en paralelo con un nivel razonable de independencia.
 
 Cuando el software presenta alto acoplamiento, responsabilidades poco claras o una concentración excesiva de lógica en unas pocas clases, el trabajo concurrente se vuelve más difícil. Dos desarrolladores que avanzan sobre tareas conceptualmente distintas terminan modificando los mismos componentes, compitiendo por las mismas clases y generando no sólo conflictos de merge, sino también conflictos semánticos: cambios que técnicamente se integran, pero que alteran o invalidan decisiones tomadas por otra persona. En estas condiciones, las ramas cortas pierden efectividad y la integración frecuente se vuelve costosa.
 
@@ -292,7 +278,48 @@ Por el contrario, un diseño con responsabilidades mejor distribuidas, límites 
 
 Así, la discusión sobre estrategias de branch no se limita a elegir entre trunk-based development, ramas por tarea o variantes más cercanas a GitFlow. La cuestión de fondo es si el sistema admite integración frecuente sin que cada cambio arrastre un volumen excesivo de coordinación. Cuando el diseño favorece bajo acoplamiento, cohesión adecuada y cambios localizados, las estrategias de ramas cortas resultan viables y efectivas. Cuando esas condiciones no están presentes, las ramas tienden a alargarse y a funcionar como mecanismo de contención frente a un diseño que dificulta integrar.
 
-En este marco, la estrategia de branch más compatible con CI/CD es aquella que minimiza el tiempo entre desarrollo e integración. Pero para que eso sea sostenible, el software debe ofrecer condiciones que permitan trabajo concurrente, pruebas rápidas y cambios acotados. De lo contrario, la estrategia elegida en el repositorio no resuelve el problema de fondo, sino que apenas compensa, de manera parcial, limitaciones del diseño.
+En este marco, la estrategia de branch más compatible con *Entrega Continua* es aquella que minimiza el tiempo entre desarrollo e integración. Pero para que eso sea sostenible, el software debe ofrecer condiciones que permitan trabajo concurrente, pruebas rápidas y cambios acotados. De lo contrario, la estrategia elegida en el repositorio no resuelve el problema de fondo, sino que apenas compensa, de manera parcial, limitaciones del diseño.
+
+> Recomendamos que intente confirmar los cambios en el sistema de control de versiones al finalizar cada cambio incremental de refactorización. Si utiliza esta técnica correctamente, debería confirmar los cambios al menos una vez al día, y normalmente varias veces al día.
+>
+> Continuous Delivery - Jez Humble & David Farley
+
+##### Git Flow
+
+![](gitflow.svg)
+
+##### Desarrollar en la rama principal
+
+Es una forma extremadamente eficaz de desarrollar, y la única que permite la integración continua.
+En este patrón, los desarrolladores casi siempre realizan envíos a la rama principal. Las ramas se utilizan solo en raras ocasiones. Los beneficios de desarrollar en la rama principal incluyen:
+- Garantizar la integración continua de todo el código.
+- Garantizar que los desarrolladores adopten los cambios de los demás de inmediato.
+- Evitar los problemas de fusión e integración al final del proyecto.
+
+##### Realizando cambios complejos sin ramas
+
+Humble y Farley sostienen que los cambios complejos no justifican, por sí solos, abandonar la lógica de integración continua. La respuesta no debería ser “trabajemos semanas aislados en una rama”, sino buscar una estrategia que permita integrar parcialmente sin romper el sistema. Eso implica introducir el cambio por etapas, manteniendo compatibilidad entre el estado viejo y el nuevo durante una transición.
+
+La técnica asociada a esta idea es lo que después se conoce ampliamente como **branch by abstraction**: en vez de ramificar el repositorio, se crea una capa de abstracción o punto de indireccionamiento dentro del diseño, de modo que la implementación vieja y la nueva puedan coexistir durante un tiempo. Así, el equipo puede ir migrando gradualmente llamadas, comportamiento o componentes sin dejar de integrar sobre la rama principal
+
+[Branch by abstraction - Martin Fowler](https://martinfowler.com/bliki/BranchByAbstraction.html?utm_source=chatgpt.com)
+
+Cuando un cambio es demasiado grande para hacerse de una vez, la respuesta no es aislarlo durante mucho tiempo en una rama, sino diseñarlo de manera que pueda introducirse gradualmente sin dejar de integrar y validar el sistema completo.
+
+##### Ship / Show / Ask
+
+###### ¿Pero qué pasa si necesito alguien revise mi código antes de subirlo, no hay mas *Pull Request*?
+
+Ship/Show/Ask es una estrategia de ramificación que combina las características de las solicitudes de extracción con la posibilidad de mantener los cambios publicados. Los cambios se clasifican como:
+- Ship (se fusionan con la rama principal sin revisión),
+- Show (se abre una solicitud de extracción para su revisión, pero se fusiona con la rama principal inmediatamente)
+- o Ask (se abre una solicitud de extracción para su discusión antes de la fusión).
+
+###### Las reglas:
+- La revisión del código, o “aprobación”, no debería ser un requisito para que se fusione una solicitud de extracción (Pull Request).
+- Los usuarios pueden fusionar sus propias solicitudes de extracción. De esta forma, controlan si su cambio es una “muestra” o una “solicitud”, y pueden decidir cuándo se publica.
+- Debemos utilizar todas las excelentes técnicas de integración continua y entrega continua que ayudan a mantener la rama principal lista para su lanzamiento.
+- Nuestras ramas no deberían tener una vida útil prolongada, y deberíamos actualizarlas con la rama principal con frecuencia.
 
 --------
 
@@ -396,3 +423,35 @@ el rendimiento en entrega de software puede medirse objetivamente mediante cuatr
 Y si lo bajo todavía más a tu lectura marcada del PDF, diría que tus resaltados enfatizan este mensaje:
 
 no alcanza con “hacer Agile/DevOps”; hay que medir outcomes reales, enfocarse en capacidades concretas y construir un sistema donde rapidez y estabilidad se refuercen mutuamente.
+
+--------
+
+## Arquitectura para despliegue continuo
+
+#### Cohesión de paquetes
+
+###### REP - Reuse/Release Equivalence Principle
+- El principio de equivalencia entre reutilización y liberación.
+- La idea es que la unidad que reutilizás debería coincidir con la unidad que liberás/versionás.
+- Si un conjunto de clases se reutiliza junto, debería formar un mismo paquete/componente publicable como una unidad coherente.
+
+*La unidad que reutilizás debería coincidir con la unidad que liberás/versionás.*
+
+###### CCP - Common Closure Principle
+- El principio de cierre común.
+- Las clases que cambian por las mismas razones deberían agruparse en el mismo paquete.
+- Si varias clases suelen modificarse juntas ante un mismo tipo de cambio, conviene que estén cerradas dentro del mismo componente.
+- Eso reduce el impacto de los cambios y mejora mantenibilidad.
+
+*Las clases que cambian por la misma razón deberían agruparse juntas.*
+
+###### CRP - Common Reuse Principle
+- El principio de reutilización común.
+- Las clases que se reutilizan juntas deberían estar juntas.
+- Y, en sentido inverso, no deberías depender de clases que no necesitás.
+- Si un paquete obliga a importar muchas clases que no usás, está mal diseñado.
+- Busca evitar dependencias innecesarias.
+
+*Las clases que cambian por la misma razón deberían agruparse juntas.*
+
+*Robert C. Martin - Clean Architecture*
