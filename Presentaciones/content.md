@@ -653,7 +653,7 @@ Con una mala calidad interna el progreso es rápido al principio, pero con el ti
 >
 >Martin Fowler
 
-##### El software de alta calidad es más barato de producir.
+##### El software de alta calidad es más barato de producir
 
 Descuidar la calidad interna conlleva una rápida acumulación de residuos. Esta basura ralentiza el desarrollo de funciones.
 Incluso un gran equipo produce errores, pero al mantener una alta calidad interna, es capaz de mantenerlos bajo control.
@@ -663,7 +663,7 @@ Un alto nivel de calidad interna minimiza lo superfluo, lo que permite al equipo
 >
 >Martin Fowler
 
-#### Dimensiones de una arquitectura que permita entrega continua:
+#### Dimensiones de la arquitectura
 - **Capacidad de soportar cambios pequeños e integración frecuente:** un sistema apto para entrega continua debe permitir introducir modificaciones graduales, mantener compatibilidad transitoria y evitar que una sola variación obligue a una reestructuración simultánea de demasiadas partes del sistema.
 - **Testeabilidad:** una arquitectura adecuada para entrega continua es aquella que facilita aislamiento, control de dependencias y verificación automatizada temprana
 - **Gestión del acoplamiento y las dependencias:** la gobernabilidad del sistema depende de poder entender, versionar y coordinar sus dependencias sin convertir cada cambio local en una intervención global.
@@ -677,11 +677,41 @@ Un alto nivel de calidad interna minimiza lo superfluo, lo que permite al equipo
 >
 >Continuous Delivery - Jez Humble & David Farley
 
-Una aplicación es una colección de componentes que hay que poder construir, versionar, probar y desplegar sin perder la condición de **entreganle**. El objetivo es organizar el sistema de manera que los cambios puedan introducirse y verificarse con bajo riesgo.
+Una aplicación es una colección de componentes que hay que poder construir, versionar, probar y desplegar sin perder la condición de **entregable**. El objetivo es organizar el sistema de manera que los cambios puedan introducirse y verificarse con bajo riesgo.
 
 Es una unidad manejable de construcción, dependencia, versionado y prueba.
 
 La división en componentes solo tiene sentido si las dependencias entre ellos siguen siendo comprensibles, controlables y versionables. Un sistema dividido en muchos componentes pero con acoplamientos opacos no mejora la entregabilidad; al contrario, puede empeorarla. Es definir unidades que puedan evolucionar y coordinarse sin caos de versiones.
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ SOFTWARE                                                     │
+│ Colección de paquetes que tiene sentido que estén juntos     │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ PAQUETE                                                      │
+│ Colección de clases que tiene sentido que estén juntas       │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ CLASE                                                        │
+│ Conjunto de estado y comportamiento que tiene sentido        │
+│ que estén juntos                                             │
+├──────────────────────────────────────────────────────────────┤
+│ Estado (atributos)                                           │
+│ - Id                                                         │
+│ - Nombre                                                     │
+│ - EstadoActual                                               │
+├──────────────────────────────────────────────────────────────┤
+│ Comportamiento (métodos)                                     │
+│ - Crear()                                                    │
+│ - Actualizar()                                               │
+│ - Validar()                                                  │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ##### Ciclos
 
@@ -725,6 +755,8 @@ Una estructura sin ciclos permite una dirección de dependencias más clara, fac
 
 Un ciclo de dependencias no es solo un problema de orden estructural: incrementa el acoplamiento y reduce la capacidad del sistema para cambiar, probarse y desplegarse con seguridad.
 
+#### Programación Orientada a Aspectos
+En la Programación Orientada a Aspectos, el código se organiza en torno a **aspectos**, que encapsulan comportamientos específicos que atraviesan múltiples partes de un programa. A diferencia de la Programación Orientada a Objetos (OOP), que se centra en la encapsulación de datos y comportamientos en objetos, la AOP se dedica a modularizar preocupaciones transversales, como el manejo de registros, la seguridad y la gestión de transacciones.
 
 #### Cohesión de paquetes
 
