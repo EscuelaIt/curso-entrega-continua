@@ -84,7 +84,7 @@ Algunos ejemplos:
 
 >Nuestro objetivo es hacer que la entrega de software desde las manos de los desarrolladores hasta la producción sea un proceso confiable, predecible, visible y en gran medida automatizado con riesgos cuantificables y bien comprendidos.
 >
-> Continuous Delivery - Jez Humble & David Farley
+>Continuous Delivery - Jez Humble & David Farley
 
 No se trata de “desplegar más seguido” como fin en sí mismo, sino hacer que la entrega de software sea repetible, confiable y de bajo riesgo.
 
@@ -106,9 +106,9 @@ No significa que todo se publique automáticamente, sino que el equipo no quede 
 >- El software es desplegable durante todo su ciclo de vida.
 >- El equipo prioriza la disponibilidad del software sobre el desarrollo de nuevas funcionalidades.
 >- Cualquier persona puede obtener retroalimentación rápida y automatizada sobre la preparación para producción de sus sistemas cada vez que se realiza un cambio.
-> - Se pueden realizar implementaciones automáticas de cualquier versión del software en cualquier entorno, bajo demanda.
+>- Se pueden realizar implementaciones automáticas de cualquier versión del software en cualquier entorno, bajo demanda.
 >
-> [Martin Fowler](https://martinfowler.com/bliki/ContinuousDelivery.html)
+>[Martin Fowler](https://martinfowler.com/bliki/ContinuousDelivery.html)
 
 #### ¿Qué problemas resuelve?
 
@@ -281,9 +281,9 @@ Así, la discusión sobre estrategias de branch no se limita a elegir entre trun
 
 En este marco, la estrategia de branch más compatible con *Entrega Continua* es aquella que minimiza el tiempo entre desarrollo e integración. Pero para que eso sea sostenible, el software debe ofrecer condiciones que permitan trabajo concurrente, pruebas rápidas y cambios acotados. De lo contrario, la estrategia elegida en el repositorio no resuelve el problema de fondo, sino que apenas compensa, de manera parcial, limitaciones del diseño.
 
-> Recomendamos que intente confirmar los cambios en el sistema de control de versiones al finalizar cada cambio incremental de refactorización. Si utiliza esta técnica correctamente, debería confirmar los cambios al menos una vez al día, y normalmente varias veces al día.
+>Recomendamos que intente confirmar los cambios en el sistema de control de versiones al finalizar cada cambio incremental de refactorización. Si utiliza esta técnica correctamente, debería confirmar los cambios al menos una vez al día, y normalmente varias veces al día.
 >
-> Continuous Delivery - Jez Humble & David Farley
+>Continuous Delivery - Jez Humble & David Farley
 
 ##### Git Flow
 
@@ -581,7 +581,150 @@ No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfoca
 
 --------
 
-# Arquitectura para despliegue continuo
+# La arquitectura como habilitador de la entrega continua
+
+#### ¿Qué es la arquitectura de un software?
+
+>El objetivo de la arquitectura de software es minimizar los recursos humanos necesarios para construir y mantener el sistema requerido.
+>
+>Clean Architecture - Robert C. Martin
+
+>Arquitectura es respecto a cosas importantes, sea lo que esto sea.
+>
+>[Ralph Johnson - Martin Fowler](https://martinfowler.com/architecture/)
+
+>El diseño de software es un ejercicio de relaciones humanas.
+>
+>[Kent Beck](https://www.infoq.com/news/2022/10/beck-design-human-relationships/)
+
+>La arquitectura representa las decisiones de diseño significativas que dan forma a un sistema, donde la significancia se mide por el costo del cambio.
+>
+>Grady Booch
+
+
+#### Según lo que vimos hasta ahora, un producto/proyecto/equipo que quiera implementar entrega continua tiene que tener estas características:
+
+###### Producto
+
+- Estado siempre liberable.
+- Cambios pequeños y localizados.
+- Alta testabilidad: facilidad de aislamiento y comportamiento observable.
+- Bajo acoplamiento y buena cohesión.
+
+###### Proyecto
+
+- Control de versiones y una línea principal integrada con frecuencia.
+- Pipeline de delivery visible y trazable.
+- Automatización de build, test y deploy.
+- Baja dependencia de pasos manuales.
+- Trabajo en lotes pequeños.
+
+###### Equipo
+
+- Equipo empoderado para integrar, desplegar y corregir sin depender de aprobaciones burocráticas.
+- Ownership claro sobre servicios, cambios e incidentes.
+- Disciplina para priorizar calidad interna, no solo velocidad aparente.
+- Feedback de cliente y de producción para ajustar el flujo.
+
+#### Atributos de calidad
+
+Martin Fowler habla de 2 tipos de atributos de calidad del software:
+- externos (como la interfaz de usuario y los defectos)
+- internos (arquitectura).
+
+La diferencia radica en que los usuarios y clientes pueden percibir qué características hacen que un producto de software tenga una alta calidad externa, pero no pueden distinguir entre una calidad interna superior o inferior.
+
+Una de las características principales de la calidad interna es facilitar la comprensión del funcionamiento de la aplicación para poder ver cómo añadir funcionalidades:
+- Si el software está bien dividido en módulos separados, no es necesario leer las centenares de líneas de código.
+- Si hay nombres claros, rápidamente se puede entender qué hace cada parte del código sin tener que analizar los detalles.
+- Si los datos siguen de forma coherente el lenguaje y la estructura del negocio subyacente, se puede entender fácilmente cómo se correlacionan con la solicitud que recibo de los representantes de atención al cliente.
+
+El código desordenado aumenta el tiempo que lleva entender cómo realizar un cambio y también incrementa la probabilidad de cometer errores. Si el error es detectado, se pierde más tiempo al tener que entender cuál es el fallo y cómo solucionarlo. Si no son detectados, se producen defectos de producción y se invierte más tiempo en corregirlos posteriormente.
+
+Mis cambios también afectan al futuro. Puede que vea una forma rápida de implementar esta función, pero es un camino que va en contra de la estructura modular del programa y añade complejidad innecesaria. Si tomo ese camino, me resultará más fácil hoy, pero ralentizará a todos los demás que tengan que lidiar con este código en las próximas semanas y meses. Una vez que otros miembros del equipo tomen la misma decisión, una aplicación fácil de modificar puede acumular rápidamente código innecesario hasta el punto de que cualquier pequeño cambio requiera semanas de trabajo.
+
+##### Tiempo de desarrollo a lo largo del ciclo de vida del proyecto
+
+Con una mala calidad interna el progreso es rápido al principio, pero con el tiempo se vuelve más difícil agregar nuevas funcionalidades. Incluso los cambios pequeños requieren que los programadores comprendan grandes áreas de código, un código que resulta difícil de entender. Cuando realizan cambios, se producen fallos inesperados, lo que conlleva largos tiempos de prueba y defectos que deben corregirse.
+
+![](high-qualitime-time-cost.png)
+
+>Centrarse en una alta calidad interna implica reducir la caída de la productividad. De hecho, algunos productos experimentan el efecto contrario: los desarrolladores pueden acelerar su ritmo de trabajo, ya que las nuevas funcionalidades se pueden crear fácilmente aprovechando el trabajo previo. Esta situación ideal es menos frecuente, pues requiere un equipo capacitado y disciplinado para lograrla. Sin embargo, la vemos ocasionalmente.
+>
+>Martin Fowler
+
+##### El software de alta calidad es más barato de producir.
+
+Descuidar la calidad interna conlleva una rápida acumulación de residuos. Esta basura ralentiza el desarrollo de funciones.
+Incluso un gran equipo produce errores, pero al mantener una alta calidad interna, es capaz de mantenerlos bajo control.
+Un alto nivel de calidad interna minimiza lo superfluo, lo que permite al equipo añadir funcionalidades con menos esfuerzo, tiempo y coste.
+
+>Lamentablemente, los desarrolladores de software no suelen explicar bien esta situación. En innumerables ocasiones he hablado con equipos de desarrollo que dicen: «No nos dejan escribir código de buena calidad porque lleva demasiado tiempo». Los desarrolladores a menudo justifican la atención a la calidad argumentando la necesidad de un profesionalismo adecuado. Pero este argumento moralista implica que esta calidad tiene un costo, lo que invalida su argumento. Lo molesto es que el código deficiente resultante no solo dificulta la vida de los desarrolladores, sino que también le cuesta dinero al cliente. Al pensar en la calidad interna, insisto en que debemos abordarla únicamente desde una perspectiva económica. Una alta calidad interna reduce el costo de futuras funcionalidades, lo que significa que invertir tiempo en escribir buen código realmente reduce los costos.
+>
+>Martin Fowler
+
+#### Dimensiones de una arquitectura que permita entrega continua:
+- **Capacidad de soportar cambios pequeños e integración frecuente:** un sistema apto para entrega continua debe permitir introducir modificaciones graduales, mantener compatibilidad transitoria y evitar que una sola variación obligue a una reestructuración simultánea de demasiadas partes del sistema.
+- **Testeabilidad:** una arquitectura adecuada para entrega continua es aquella que facilita aislamiento, control de dependencias y verificación automatizada temprana
+- **Gestión del acoplamiento y las dependencias:** la gobernabilidad del sistema depende de poder entender, versionar y coordinar sus dependencias sin convertir cada cambio local en una intervención global.
+- **El sistema entregable no se limita al código aplicativo:** configuración, infraestructura y datos forman parte de las decisiones de arquitectura. La aplicación no puede diseñarse como si esos elementos fueran externos o secundarios.
+- **Compatibilidad progresiva:** un sistema que exige cambios destructivos o sincronización perfecta entre todas sus partes se vuelve hostil a la entrega continua. Entroducir cambios de forma aditiva, tolerar estados de transición y desacoplar, en la medida de lo posible, el despliegue aplicativo de las transformaciones irreversibles de datos.
+- **Capacidad de observación operativa:** entrega continua requiere un sistema que pueda ser observado una vez desplegado. Para ello, el sistema debe exponer señales suficientes para verificar que está vivo, que está listo y que se comporta de manera aceptable tras un cambio.
+
+#### Manejo de componentes y dependencias
+
+>Distinguimos entre componentes y librerías de la siguiente manera: las librerías se refieren a paquetes de software que su equipo no controla, sino que elige cuáles usar. Las librerías generalmente se actualizan con poca frecuencia. En cambio, los componentes son piezas de software de las que depende su aplicación, pero que también son desarrolladas por su equipo u otros equipos de la organización. Los componentes generalmente se actualizan con frecuencia.
+>
+>Continuous Delivery - Jez Humble & David Farley
+
+Una aplicación es una colección de componentes que hay que poder construir, versionar, probar y desplegar sin perder la condición de **entreganle**. El objetivo es organizar el sistema de manera que los cambios puedan introducirse y verificarse con bajo riesgo.
+
+Es una unidad manejable de construcción, dependencia, versionado y prueba.
+
+La división en componentes solo tiene sentido si las dependencias entre ellos siguen siendo comprensibles, controlables y versionables. Un sistema dividido en muchos componentes pero con acoplamientos opacos no mejora la entregabilidad; al contrario, puede empeorarla. Es definir unidades que puedan evolucionar y coordinarse sin caos de versiones.
+
+##### Ciclos
+
+Los ciclos entre componentes son un problema explícito. Una estructura de componentes sana debe evitar dependencias circulares, porque esas dependencias afectan tanto la comprensión del sistema como la capacidad de build, test y release.
+
+```text
+Componentes con ciclo
+┌──────────┐     ┌──────────┐
+│ Módulo A │ ──► │ Módulo B │
+└──────────┘     └──────────┘
+     ▲               │
+     │               ▼
+┌──────────┐      ┌──────────┐
+│ Módulo D │ ◄─── │ Módulo C │
+└──────────┘      └──────────┘
+
+Componentes sin ciclo
+┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+│ Módulo A │ ──► │ Módulo B │ ──► │ Módulo C │ ──► │ Módulo D │
+└──────────┘     └──────────┘     └──────────┘     └──────────┘
+
+Versión por capas
+┌──────────────────────┐
+│ Presentación         │
+└─────────┬────────────┘
+          ▼
+┌──────────────────────┐
+│ Aplicación           │
+└─────────┬────────────┘
+          ▼
+┌──────────────────────┐
+│ Dominio              │
+└─────────┬────────────┘
+          ▼
+┌──────────────────────┐
+│ Infraestructura      │
+└──────────────────────┘
+```
+
+Una estructura sin ciclos permite una dirección de dependencias más clara, facilita el razonamiento sobre el sistema, reduce el impacto del cambio y mejora la capacidad de prueba, mantenimiento y evolución.
+
+Un ciclo de dependencias no es solo un problema de orden estructural: incrementa el acoplamiento y reduce la capacidad del sistema para cambiar, probarse y desplegarse con seguridad.
+
 
 #### Cohesión de paquetes
 
@@ -610,3 +753,72 @@ No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfoca
 *Las clases que cambian por la misma razón deberían agruparse juntas.*
 
 *Robert C. Martin - Clean Architecture*
+
+#### Arquitectura Hexagonal
+
+![](hexagonal-architecture.png)
+
+#### Motivación
+
+Uno de los mayores problemas de las aplicaciones de software a lo largo de los años ha sido la infiltración de la lógica empresarial en el código de la interfaz de usuario. Esto genera un problema triple: primero, el sistema no se puede probar de forma eficaz con conjuntos de pruebas automatizadas porque parte de la lógica que se debe probar depende de detalles visuales que cambian con frecuencia, como el tamaño de los campos y la ubicación de los botones; por la misma razón, resulta imposible pasar de un uso del sistema por parte de un usuario a un sistema de ejecución por lotes; y, por la misma razón, resulta difícil o imposible permitir que otro programa controle el programa cuando esto se vuelve conveniente.
+
+#### Naturaleza de la solución
+
+Tanto los problemas del lado del usuario como los del servidor se deben al mismo error de diseño y programación: la confusión entre la lógica de negocio y la interacción con entidades externas. La asimetría que se debe aprovechar no reside entre la parte izquierda y la derecha de la aplicación, sino entre el interior y el exterior de la misma. La regla fundamental es que el código interno no debe filtrarse al exterior.
+
+Dejando de lado cualquier asimetría horizontal o vertical, observamos que la aplicación se comunica a través de **puertos** con entidades externas. El término **puerto** evoca la idea de puertos en un sistema operativo, donde cualquier dispositivo compatible con sus protocolos puede conectarse; y puertos en dispositivos electrónicos, donde, de nuevo, cualquier dispositivo compatible con los protocolos mecánicos y eléctricos puede conectarse. El protocolo de un puerto viene determinado por la finalidad de la comunicación entre los dos dispositivos. Este protocolo adopta la forma de una interfaz de programación de aplicaciones (API).
+
+Para cada dispositivo externo existe un **adaptador** que convierte la definición de la API en las señales que necesita dicho dispositivo, y viceversa. Una interfaz gráfica de usuario (GUI) es un ejemplo de adaptador que relaciona los movimientos de una persona con la API del puerto. Otros adaptadores compatibles con el mismo puerto son los sistemas de prueba automatizados, los controladores de procesamiento por lotes y cualquier código necesario para la comunicación entre aplicaciones en la empresa o la red.
+
+La **arquitectura hexagonal**, o **de puertos y adaptadores**, resuelve estos problemas aprovechando la simetría de la situación: una aplicación interna se comunica a través de varios puertos con dispositivos externos. Los elementos externos a la aplicación pueden gestionarse de forma simétrica.
+
+El hexágono tiene como objetivo resaltar visualmente:
+- (a) la asimetría interior-exterior y la naturaleza similar de los puertos, y
+- (b) la presencia de un número definido de puertos diferentes: dos, tres o cuatro (cuatro es el máximo que he encontrado hasta la fecha).
+
+El hexágono no es un hexágono porque el número seis sea importante, sino que permite a quienes realizan el dibujo tener espacio para insertar puertos y adaptadores según sea necesario, sin las limitaciones de un dibujo unidimensional en capas. El término arquitectura hexagonal proviene de este efecto visual.
+
+El término **puerto y adaptadores** hace referencia a la función de cada componente del diagrama.
+- Un puerto identifica una comunicación específica.
+- Normalmente, cada puerto requiere varios adaptadores para diversas tecnologías que se conectan a él. 
+- Estos adaptadores pueden incluir una interfaz gráfica de usuario, un entorno de prueba, un controlador de procesamiento por lotes, una interfaz HTTP, una base de datos simulada (en memoria) y una base de datos real (posiblemente bases de datos diferentes para desarrollo, pruebas y uso real).
+
+[Fuente](https://alistair.cockburn.us/hexagonal-architecture)
+
+#### Arquitectura Limpia
+
+![](clean-architecture.jpg)
+
+Cada una de estas arquitecturas produce sistemas que son:
+
+- Independiente de los frameworks. La arquitectura no depende de la existencia de una biblioteca de software con múltiples funcionalidades. Esto permite utilizar dichos frameworks como herramientas, en lugar de tener que adaptar el sistema a sus limitaciones.
+- Comprobable. Las reglas de negocio se pueden probar sin la interfaz de usuario, la base de datos, el servidor web ni ningún otro elemento externo.
+- Independiente de la interfaz de usuario. La interfaz de usuario puede modificarse fácilmente, sin alterar el resto del sistema. Por ejemplo, una interfaz web podría reemplazarse por una interfaz de consola sin cambiar las reglas de negocio.
+- Independiente de la base de datos. Puedes reemplazar Oracle o SQL Server por Mongo, BigTable, CouchDB o cualquier otra opción. Tus reglas de negocio no están ligadas a la base de datos.
+- Independiente de cualquier organismo externo. De hecho, sus reglas de negocio simplemente no saben nada del mundo exterior.
+
+##### La regla de dependencia
+
+Esta regla establece que las dependencias del código fuente solo pueden apuntar hacia adentro. Nada dentro de un círculo interno puede tener conocimiento alguno sobre algo dentro de un círculo externo.
+
+##### Entidades
+
+Las entidades encapsulan las reglas de negocio de toda la empresa . Una entidad puede ser un objeto con métodos o un conjunto de estructuras de datos y funciones. Lo importante es que las entidades puedan ser utilizadas por diversas aplicaciones dentro de la empresa.
+
+##### Casos de uso
+
+El software de esta capa contiene reglas de negocio específicas de la aplicación. Encapsula e implementa todos los casos de uso del sistema. Estos casos de uso coordinan el flujo de datos hacia y desde las entidades, y dirigen a dichas entidades para que utilicen sus reglas de negocio corporativas con el fin de alcanzar los objetivos del caso de uso.
+
+##### Adaptadores de interfaz
+
+El software de esta capa consiste en un conjunto de adaptadores que convierten los datos del formato más conveniente para los casos de uso y las entidades, al formato más conveniente para alguna entidad externa, como la base de datos o la web.
+
+Esta capa, por ejemplo, contendrá por completo la arquitectura MVC de una interfaz gráfica de usuario (GUI). Los presentadores, las vistas y los controladores pertenecen a esta capa. Los modelos probablemente sean simplemente estructuras de datos que se pasan de los controladores a los casos de uso, y luego de los casos de uso a los presentadores y las vistas.
+
+##### ¿Solo cuatro círculos?
+
+No, los círculos son esquemáticos. Puede que necesites más de cuatro. No hay ninguna regla que diga que siempre debes tener solo estos cuatro. Sin embargo, la regla de dependencia siempre se aplica. Las dependencias del código fuente siempre apuntan hacia adentro.
+
+A medida que te acercas, el nivel de abstracción aumenta. El círculo más externo representa detalles concretos de bajo nivel. A medida que te acercas, el software se vuelve más abstracto y encapsula políticas de nivel superior. El círculo más interno es el más general.
+
+[Fuente](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
