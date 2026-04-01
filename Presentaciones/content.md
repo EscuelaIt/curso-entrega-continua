@@ -67,7 +67,7 @@ Algunos ejemplos:
 
 - [Continuous Delivery](https://martinfowler.com/books/continuousDelivery.html)
 - [Accelerate](https://www.amazon.com/Accelerate-Software-Performing-Technology-Organizations/dp/1942788339)
-- [Proyecto Liga Libre](https://github.com/emigallo-edu/liga-libre)
+- [Proyecto Liga Libre](https://github.com/EscuelaIt/curso-entrega-continua-practica/tree/main)
 
 
 #### Conocimiento necesario
