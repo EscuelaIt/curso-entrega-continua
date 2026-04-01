@@ -1106,12 +1106,13 @@ Un problema particular de estos sistemas es que el código a menudo no es muy mo
 
 ### Principales pruebas automáticas
 
-| Prueba / validación mencionada                             | Capítulo                                         | Relevancia                                             |
+| Prueba / validación mencionada                             | Capítulo                                         | Relevancia                                                     |
 | ---------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
 | **Unit Tests**                                             | Chapter 5 / 7 / 12                               | Muy alta: sostienen feedback rápido y el commit stage.         |
-| **Acceptance Tests**                                       | Chapter 5 / 8                                    | Muy alta: validan comportamiento funcional relevante.          |
-| **Smoke Tests / Integrated Smoke Tests**                   | Chapter 5 / 6                                    | Alta: validación rápida post-deploy.                           |
 | **Integration Testing**                                    | Chapter 4 — *Implementing a Testing Strategy*    | Alta: verifica colaboración entre partes técnicas.             |
+| **Component tests / System tests**                         | Chapter 4 — *Implementing a Testing Strategy*    | Alta: verifica colaboración entre partes técnicas.             |
+| **Acceptance Tests**                                       | Chapter 5 / 8                                    | Muy alta: validan comportamiento funcional relevante.          |
+| **Smoke Tests**                                            | Chapter 5 / 6                                    | Alta: validación rápida post-deploy.                           |
 | **Capacity Tests / Capacity Testing**                      | Chapter 9 — *Testing Nonfunctional Requirements* | Alta cuando capacidad/performance es crítica para liberar.     |
 | **Testing Your Environment’s Configuration**               | Chapter 6 — *Build and Deployment Scripting*     | Alta: reduce riesgo por configuración y entorno.               |
 
@@ -1190,6 +1191,106 @@ Se debe promover una estrategia donde haya:
 - fundamentales para poder entregar con frecuencia
 - insuficientes por sí solas para validar el sistema completo
 
+#### Test de integración
+
+Si la aplicación se comunica con diversos sistemas externos mediante una serie de protocolos diferentes, o si consta de varios módulos débilmente acoplados con interacciones complejas entre ellos, entonces las pruebas de integración se vuelven cruciales.
+Son las pruebas que garantizan que cada parte independiente de su aplicación funcione correctamente con los servicios de los que depende.
+
+Las pruebas de integración buscan verificar que nuestro código funcione correctamente cuando interactúa con otras partes reales del sistema.
+
+```text
+                 Flujo real                         Flujo de prueba
+                      │                                   │
+                      ▼                                   ▼
+              ┌──────────────┐                   ┌──────────────────┐
+              │ API          │                   │ Prueba de        │
+              │              │                   │ Integración      │
+              └──────┬───────┘                   └────────┬─────────┘
+                     │                                    │
+                     └──────────────┬─────────────────────┘
+                                    ▼
+                           ┌──────────────────┐
+                           │ Repositorio / DAO│
+                           └────────┬─────────┘
+                                    ▼
+                           ┌──────────────────┐
+                           │ SQL / DB         │
+                           └──────────────────┘
+```
+
+##### Esas **otras partes** pueden ser, por ejemplo
+- la base de datos,
+- el sistema de archivos,
+- una cola,
+- un servicio externo,
+- una API,
+- el contenedor DI,
+- o incluso otro módulo interno.
+
+##### Qué validan exactamente
+- los componentes se conectan bien;
+- las configuraciones son correctas;
+- los contratos entre capas o servicios son compatibles;
+- la infraestructura responde como el código espera;
+- y el comportamiento conjunto produce el resultado correcto.
+
+##### Alcance de una prueba de integración
+
+Las pruebas de integración no deberían convertirse en escenarios enormes que validan muchas cosas a la vez, porque eso trae varios problemas:
+- cuando fallan, cuesta saber qué integración se rompió;
+- el diagnóstico se vuelve lento;
+- aumentan el acoplamiento entre partes del sistema;
+- y se vuelven más frágiles y caras de mantener.
+
+#### Test de paquetes y de sistema
+
+Conviene distinguir estas dos ideas porque no validan lo mismo ni sirven para detectar el mismo tipo de problema.
+
+Las **pruebas de paquetes** se ubican en un nivel intermedio. Apuntan a verificar que un paquete, componente o módulo completo funcione correctamente como unidad técnica. No prueban una sola clase aislada como en una prueba unitaria, pero tampoco validan todavía el sistema completo desplegado.
+
+Las **pruebas de sistema**, en cambio, observan el comportamiento del sistema entero. Su foco está puesto en comprobar que todas las partes principales ya integradas producen el resultado esperado como producto ejecutable.
+
+```text
+      Pruebas de paquete                                Prueba de sistema
+
+┌────────────────┐   ┌──────────┐              ┌──────────────────────────────────────┐
+│ Test paquete A │──▶│ Paquete A│              │ Test del sistema completo            │
+└────────────────┘   └──────────┘              ├──────────────────────────────────────┤
+
+┌────────────────┐   ┌──────────┐              │  ┌──────────┐  ┌──────────┐          │
+│ Test paquete B │──▶│ Paquete B│              │  │ Paquete A│  │ Paquete B│          │
+└────────────────┘   └──────────┘              │  └──────────┘  └──────────┘          │
+                                               │                                      │
+                                               │  ┌──────────┐  ┌──────────┐          │
+                                               │  │ Paquete C│  │ Paquete D│          │
+                                               │  └──────────┘  └──────────┘          │
+                                               │                                      │
+                                               │  ┌──────────┐  ┌──────────┐          │
+                                               │  │ Infra    │  │ DB / API │          │
+                                               │  └──────────┘  └──────────┘          │
+                                               └──────────────────────────────────────┘
+```
+
+Qué muestra este diagrama:
+- las pruebas de paquete se aplican sobre paquetes concretos, por ejemplo `A` y `B`, de manera separada;
+- la prueba de sistema se aplica sobre el sistema entero que contiene `A`, `B` y otros paquetes;
+- las primeras buscan problemas dentro de un componente puntual;
+- la segunda busca problemas que aparecen cuando todo el conjunto funciona integrado.
+
+##### Diferencia central
+
+- Las pruebas de paquetes validan un bloque técnico relativamente autónomo.
+- Las pruebas de sistema validan el comportamiento observable del sistema completo.
+- Las primeras suelen ser más focalizadas y más baratas.
+- Las segundas suelen ser más amplias, más lentas y más costosas.
+
+##### Relación con otros tipos de prueba
+
+- No reemplazan pruebas unitarias.
+- No eliminan la necesidad de pruebas de integración.
+- No vuelven innecesarias las pruebas de aceptación.
+- Cada una reduce incertidumbre en un nivel distinto.
+
 #### Test de aceptación
 
 Las pruebas de aceptación permiten verificar si el sistema realmente satisface los requisitos del negocio.
@@ -1263,45 +1364,129 @@ Dentro del deployment pipeline, suelen aparecer en etapas posteriores a las prue
 - cercanas al comportamiento real del sistema
 - insuficientes por sí solas para cubrir todos los niveles de prueba
 
-#### Test de integración
+#### Smoke tests
 
-Si la aplicación se comunica con diversos sistemas externos mediante una serie de protocolos diferentes, o si consta de varios módulos débilmente acoplados con interacciones complejas entre ellos, entonces las pruebas de integración se vuelven cruciales.
-Son las pruebas que garantizan que cada parte independiente de su aplicación funcione correctamente con los servicios de los que depende.
+Los smoke tests son un conjunto pequeño de verificaciones rápidas que se ejecutan sobre un sistema ya desplegado para comprobar que quedó operativo.
 
-Las pruebas de integración buscan verificar que nuestro código funcione correctamente cuando interactúa con otras partes reales del sistema.
+No buscan demostrar que todo funciona en detalle. Buscan responder una pregunta mucho más acotada y mucho más urgente:
+- ¿el sistema arrancó bien?,
+- ¿quedó accesible?
+- y ¿permite ejecutar algunos comportamientos críticos sin romperse?
+
+Son especialmente importantes después del deploy, porque ayudan a detectar el problema clásico de **despliegue exitoso pero sistema roto**.
+El pipeline pudo haber compilado, empaquetado y publicado correctamente, pero aun así la aplicación puede fallar por configuración, por conectividad, por migraciones incompletas o por un error de wiring entre componentes.
 
 ```text
                  Flujo real                         Flujo de prueba
                       │                                   │
                       ▼                                   ▼
               ┌──────────────┐                   ┌──────────────────┐
-              │ API          │                   │ Prueba de        │
-              │              │                   │ Integración      │
+              │ Deploy       │                   │ Smoke test       │
+              │ a entorno    │                   │ post-deploy      │
               └──────┬───────┘                   └────────┬─────────┘
                      │                                    │
                      └──────────────┬─────────────────────┘
                                     ▼
                            ┌──────────────────┐
-                           │ Repositorio / DAO│
+                           │ App desplegada   │
                            └────────┬─────────┘
                                     ▼
                            ┌──────────────────┐
-                           │ SQL / DB         │
+                           │ Configuración /  │
+                           │ dependencias     │
+                           └────────┬─────────┘
+                                    ▼
+                           ┌──────────────────┐
+                           │ Healthcheck /    │
+                           │ endpoint crítico │
+                           └────────┬─────────┘
+                                    ▼
+                           ┌──────────────────┐
+                           │ Resultado rápido │
+                           │ apto / no apto   │
                            └──────────────────┘
 ```
 
-Esas **otras partes** pueden ser, por ejemplo:
-- la base de datos,
-- el sistema de archivos,
-- una cola,
-- un servicio externo,
-- una API,
-- el contenedor DI,
-- o incluso otro módulo interno.
+##### Principales características
 
-Qué validan exactamente:
-- los componentes se conectan bien;
-- las configuraciones son correctas;
-- los contratos entre capas o servicios son compatibles;
-- la infraestructura responde como el código espera;
-- y el comportamiento conjunto produce el resultado correcto.
+- la prueba ocurre después del despliegue;
+- entra al sistema ya ejecutándose en un entorno real o representativo;
+- valida accesibilidad, configuración y funcionamiento mínimo;
+- y produce una decisión rápida sobre si el sistema quedó apto para seguir.
+
+##### Deben ejecutarse inmediatamente después del deploy
+
+- Su lugar natural es después de desplegar a un entorno.
+- Sirven como validación rápida post-deploy.
+- Si fallan, el problema no es “falta de cobertura”, sino que probablemente el sistema no quedó en condiciones mínimas de uso.
+
+##### Deben ser pocas, rápidas y críticas
+
+- No deberían cubrir todos los casos de negocio.
+- Deberían verificar sólo lo indispensable para saber si la aplicación está viva y usable.
+- Conviene elegir pocos recorridos o chequeos de muy alto valor.
+
+Ejemplos típicos:
+- la aplicación levanta;
+- responde un healthcheck;
+- puede conectarse a la base de datos;
+- expone un endpoint crítico;
+- o permite ejecutar una operación principal muy simple.
+
+##### Detectan problemas que otras pruebas no siempre ven
+
+- Pueden revelar errores de configuración de entorno.
+- Pueden detectar wiring incorrecto entre componentes.
+- Pueden mostrar problemas de credenciales, puertos, variables de entorno o migraciones.
+- Son útiles para descubrir fallas visibles sólo cuando el sistema está desplegado.
+
+##### No reemplazan pruebas unitarias, de aceptación o de integración
+
+- No sirven para validar toda la lógica del sistema.
+- No tienen suficiente profundidad para cubrir reglas de negocio completas.
+- Su función no es demostrar calidad exhaustiva, sino reducir el riesgo inmediato después de desplegar.
+
+##### Resumen conceptual
+
+- rápidas
+- pocas
+- automatizadas
+- post-deploy
+- orientadas a disponibilidad operativa
+- útiles para detectar configuración incorrecta
+- útiles para detectar sistema caído o mal cableado
+- centradas en capacidades mínimas críticas
+- insuficientes por sí solas para validar el sistema completo
+
+#### Nivel de abstracción de las pruebas
+
+```text
+          Más cerca del sistema en ejecución
+          Mayor nivel de abstracción
+                          │
+                          ▼
+               ┌──────────────────────────┐
+               │ Smoke tests              │
+               ├──────────────────────────┤
+               │ System tests             │
+               ├──────────────────────────┤
+               │ Acceptance tests         │
+               ├─────────────┬────────────┤
+               │ Integration │ Package /  │
+               │ tests       │ component  │
+               │             │ tests      │
+               ├─────────────┴────────────┤
+               │ Unit tests               │
+               └──────────────────────────┘
+                          ▲
+                          │
+          Menor nivel de abstracción
+          Más cerca del código
+
+```
+
+###### Qué muestra este diagrama
+- a medida que subimos, las pruebas miran porciones más grandes y más reales del sistema;
+- a medida que bajamos, las pruebas se vuelven más precisas, más rápidas y más cercanas al diseño interno;
+- ningún nivel reemplaza a los demás;
+- y una estrategia sana combina varios niveles para reducir incertidumbre rápido y con buen costo.
