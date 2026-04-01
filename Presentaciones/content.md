@@ -601,7 +601,6 @@ No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfoca
 >
 >Grady Booch
 
-
 #### Según lo que vimos hasta ahora, un producto/proyecto/equipo que quiera implementar entrega continua tiene que tener estas características:
 
 ###### Producto
@@ -854,3 +853,455 @@ No, los círculos son esquemáticos. Puede que necesites más de cuatro. No hay 
 A medida que te acercas, el nivel de abstracción aumenta. El círculo más externo representa detalles concretos de bajo nivel. A medida que te acercas, el software se vuelve más abstracto y encapsula políticas de nivel superior. El círculo más interno es el más general.
 
 [Fuente](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+
+--------
+
+# Pruebas
+
+La entrega continua requiere una estrategia deliberada de pruebas automatizadas que produzca feedback rápido, confiable y progresivamente más rico sobre cada cambio. No se trata de “tener muchos tests”, sino de organizar distintos tipos de pruebas según el tipo de evidencia que aportan y el momento del pipeline en que conviene ejecutarlas.
+
+El libro organiza las pruebas en cuatro grandes grupos:
+- Business-Facing Tests That Support the Development Process
+- Technology-Facing Tests That Support the Development Process
+- Business-Facing Tests That Critique the Project
+- Technology-Facing Tests That Critique the Project
+
+No organiza las pruebas solo por nivel técnico, sino por dos preguntas simultáneas:
+- a qué están orientadas: negocio o tecnología
+- y para qué sirven: apoyar el desarrollo o criticar el sistema.
+
+![](test-quadrant.png)
+
+Esta clasificación es importante porque muestra que el libro no piensa solo en la clásica oposición “unitarias vs integración”, sino en una estrategia de validación plural, donde algunas pruebas ayudan a desarrollar el sistema y otras a criticarlo una vez construido. En otras palabras, las pruebas no cumplen todas la misma función: algunas orientan el diseño y otras evalúan el sistema desde una mirada más externa
+
+### 1. Business-Facing Tests That Support the Development Process
+
+Son pruebas orientadas al comportamiento de negocio que ayudan a construir el sistema correctamente mientras se lo está desarrollando. No están pensadas solo para detectar defectos al final, sino para guiar la implementación y alinear el software con el comportamiento esperado por el negocio.
+
+##### Qué tipo de valor aportan
+
+Estas pruebas ayudan a responder preguntas como:
+
+- ¿estamos construyendo el comportamiento correcto?
+- ¿la funcionalidad implementada expresa correctamente la intención del negocio?
+- ¿los criterios de aceptación pueden volverse verificables y ejecutables?
+
+##### Cómo pensarlas
+
+Podemos entenderlas como pruebas que:
+- están cerca del lenguaje del dominio,
+- ayudan a clarificar requisitos,
+- y permiten que el equipo desarrolle con una referencia conductual verificable.
+
+Ejemplos típicos:
+- especificaciones ejecutables,
+- pruebas de aceptación escritas en lenguaje cercano al dominio,
+- escenarios funcionales automatizados que guían el desarrollo.
+
+Las pruebas de aceptación deben ejecutarse cuando el sistema esté en un entorno similar al de producción.
+Las pruebas de aceptación manuales se realizan normalmente colocando la aplicación en un entorno de pruebas de aceptación del usuario (UAT) que sea lo más parecido posible al de producción, tanto en configuración como en el estado de la aplicación, aunque puede utilizar versiones simuladas de los servicios externos. El tester utiliza la interfaz de usuario estándar de la aplicación para realizar las pruebas. De forma similar, las pruebas de aceptación automatizadas deben ejecutarse en un entorno similar al de producción, donde el entorno de pruebas interactúe con la aplicación de la misma manera que lo haría un usuario.
+
+##### Las pruebas de aceptación automatizadas ofrecen varias ventajas
+
+- Agilizan el ciclo de retroalimentación: los desarrolladores pueden ejecutar pruebas automatizadas
+para comprobar si han cumplido un requisito específico sin necesidad de
+consultar a los evaluadores.
+- Reducen la carga de trabajo de los testers.
+- Permiten a los evaluadores concentrarse en pruebas exploratorias y actividades de mayor valor,
+en lugar de tareas repetitivas y tediosas.
+- Las pruebas de aceptación constituyen un potente conjunto de pruebas de regresión. Esto es
+especialmente importante al desarrollar aplicaciones grandes o trabajar en equipos grandes,
+donde se utilizan frameworks o muchos módulos y es probable que los cambios en
+una parte de la aplicación afecten a otras funcionalidades.
+- Al utilizar nombres de pruebas y conjuntos de pruebas legibles, como recomienda el
+desarrollo guiado por el comportamiento (BDD), es posible autogenerar la documentación de requisitos a partir de las pruebas. La ventaja de este enfoque es que la documentación de requisitos nunca queda desactualizada: se puede generar automáticamente con cada compilación.
+
+>Es importante recordar que no todo necesita automatizarse. Hay muchos aspectos de un sistema que las personas realmente pueden probar mejor. La usabilidad, la coherencia visual y otros aspectos similares son difíciles de verificar en pruebas automatizadas.
+>Las pruebas exploratorias también son imposibles de automatizar, aunque, por supuesto, los testers utilizan la automatización como parte de las pruebas exploratorias para tareas como configurar escenarios y crear datos de prueba.
+>
+>Continuous Delivery - Jez Humble & David Farley
+
+##### Qué lugar ocupan en CI/CD
+
+Ayudan a evitar una separación artificial entre “construcción” y “validación funcional”. En un sistema de entrega continua, cuanto antes se pueda verificar que el comportamiento de negocio es correcto, menor será el costo del error.
+
+### 2. Technology-Facing Tests That Support the Development Process
+
+Son pruebas orientadas a la correctitud técnica interna del sistema y que ayudan al equipo mientras construye el software. Acá entran las pruebas más cercanas al código y a sus componentes, cuyo objetivo principal es dar feedback técnico rápido.
+
+##### Qué tipo de valor aportan
+
+Estas pruebas ayudan a responder preguntas como:
+- ¿la lógica implementada funciona correctamente a nivel técnico?
+- ¿una unidad o componente hace lo que se espera?
+- ¿el cambio introdujo una regresión local?
+- ¿seguimos pudiendo modificar el diseño con seguridad?
+
+Son especialmente valiosas porque sostienen el feedback temprano que necesita el pipeline.
+
+##### Cómo pensarlas
+
+Son pruebas:
+- rápidas,
+- baratas de ejecutar,
+- frecuentes,
+- y muy útiles para detectar problemas antes de que el cambio avance a etapas más costosas del pipeline.
+
+Ejemplos típicos
+- unit tests,
+- pruebas técnicas de componentes,
+- validaciones automatizadas cercanas al código.
+
+##### Qué lugar ocupan en CI/CD
+
+De las cuatro categorías, estas son las más críticas para sostener el commit stage. En términos prácticos, son las que permiten que el equipo integre seguido sin esperar demasiado para saber si rompió algo. Son las pruebas más importantes para el feedback inmediato del desarrollo.
+
+### 3. Business-Facing Tests That Critique the Project
+
+Son pruebas orientadas al negocio, pero ya no tanto para ayudar a desarrollar el sistema paso a paso, sino para evaluarlo críticamente desde una perspectiva más externa o más cercana al uso real.
+
+La palabra **critique** es importante: estas pruebas no acompañan tanto el diseño fino del código, sino que examinan el sistema construido para juzgar si realmente satisface expectativas relevantes.
+
+#### Qué tipo de valor aportan
+
+Ayudan a responder preguntas como:
+- ¿el sistema realmente resuelve el problema esperado por el usuario o el negocio?
+- ¿su comportamiento global es aceptable?
+- ¿hay aspectos de experiencia, adecuación o uso que no se detectan solo con pruebas técnicas?
+
+##### Cómo pensarlas
+
+Son más externas, más evaluativas, más cercanas a la percepción del producto como sistema completo.
+
+Ejemplos típicos
+- pruebas exploratorias,
+- pruebas de usabilidad,
+- revisiones funcionales desde la óptica del usuario,
+- evaluaciones que contrastan el sistema con expectativas reales del dominio.
+
+##### Qué lugar ocupan en CI/CD
+
+El libro las reconoce como parte de una estrategia de calidad completa, pero no son necesariamente las más aptas para formar parte del feedback más temprano y frecuente del pipeline. Tienen valor, pero suelen ser más costosas, más lentas o menos fácilmente automatizables.
+Por eso, desde la perspectiva de entrega continua, son relevantes para criticar el producto, aunque no siempre son el primer pilar del automation pipeline.
+
+### 4. Technology-Facing Tests That Critique the Project
+
+Son pruebas orientadas a la tecnología, pero con propósito evaluativo más que de guía directa al desarrollo. Buscan juzgar propiedades del sistema ya construido desde el punto de vista técnico general.
+
+##### Qué tipo de valor aportan
+
+Ayudan a responder preguntas como:
+- ¿el sistema soporta la carga esperada?
+- ¿se comporta aceptablemente bajo ciertas restricciones técnicas?
+- ¿presenta riesgos técnicos relevantes en seguridad, capacidad o rendimiento?
+- ¿las características no funcionales están en un nivel aceptable?
+
+##### Cómo pensarlas
+
+Estas pruebas suelen mirar el sistema “desde afuera”, pero en dimensiones técnicas más amplias:
+- rendimiento,
+- capacidad,
+- robustez,
+- seguridad,
+- comportamiento bajo estrés.
+
+Ejemplos típicos
+- pruebas de performance,
+- pruebas de capacidad,
+- pruebas de seguridad,
+- pruebas de resiliencia o robustez técnica.
+
+##### Qué lugar ocupan en CI/CD
+
+Estas pruebas son muy importantes, pero típicamente más tardías y más costosas dentro del pipeline.
+
+### Cómo entender los 4 tipos en conjunto
+
+La idea de fondo es que una estrategia madura de pruebas no depende de una sola familia de tests. El sistema necesita:
+- pruebas que ayuden a construir bien,
+- y pruebas que ayuden a juzgar bien;
+- pruebas cercanas al negocio,
+- y pruebas cercanas a la tecnología.
+
+Cuáles son las más relevantes para entrega continua
+
+Si lo querés conectar con CI/CD, la lectura más rigurosa sería esta:
+
+##### Más críticas para sostener el flujo temprano
+
+- Technology-Facing Tests That Support the Development Process porque sostienen el feedback rápido del commit stage.
+
+##### También esenciales para construir confianza funcional
+
+-Business-Facing Tests That Support the Development Process porque ayudan a verificar tempranamente el comportamiento relevante del negocio.
+
+##### Necesarias, pero usualmente más tardías o costosas
+
+- Business-Facing Tests That Critique the Project
+- Technology-Facing Tests That Critique the Project porque aportan validación más amplia, pero no siempre son las más aptas para el feedback más inmediato del pipeline.
+
+##### Síntesis
+
+Las pruebas automatizadas se organizan en cuatro tipos según dos ejes:
+- su orientación al negocio o a la tecnología,
+- y su función de apoyar el desarrollo o criticar el sistema.
+
+Para la entrega continua, las más decisivas al inicio del pipeline son las pruebas que apoyan el desarrollo —especialmente las tecnológicas rápidas del commit stage—, mientras que las pruebas que critican el proyecto aportan una validación más amplia y tardía
+
+### Dobles de prueba
+
+Una parte fundamental de las pruebas automatizadas consiste en reemplazar parte de un sistema en tiempo de ejecución
+con una versión simulada. De esta forma, las interacciones de la parte de la aplicación que se está probando con el resto de la aplicación se pueden restringir con precisión, de modo que su comportamiento se pueda determinar con mayor facilidad. Estas simulaciones se conocen a menudo como mocks, stubs, dummies, etc. 
+
+Gerard Meszaros acuñó el término genérico **test doubles** y distinguió además entre los distintos tipos de test doubles de la siguiente manera:
+- Los objetos ficticios se pasan como argumentos, pero nunca se utilizan realmente. Normalmente,
+solo se utilizan para rellenar listas de parámetros.
+- Los objetos falsos tienen implementaciones funcionales, pero suelen utilizar algún atajo que los hace inadecuados para producción. Un buen ejemplo de esto es la base de datos en memoria.
+- Los stubs proporcionan respuestas predefinidas a las llamadas realizadas durante la prueba, y generalmente no responden a nada que esté fuera de lo programado para la prueba.
+- Los espías son stubs que también registran información según cómo se les llama. Un ejemplo podría ser un servicio de correo electrónico que registra cuántos mensajes se enviaron.
+- Los mocks están preprogramados con expectativas que especifican las llamadas que se espera que reciban. Pueden lanzar una excepción si reciben una llamada inesperada y se verifican durante la comprobación para asegurar que recibieron todas las llamadas esperadas.
+
+### Pruebas según la madurez del proyecto
+
+##### Proyecto nuevo
+
+En esta etapa, el costo del cambio es bajo y, al establecer reglas básicas relativamente sencillas y crear una infraestructura de pruebas también sencilla, se puede dar un excelente comienzo al proceso de integración continua. En esta situación, lo importante es comenzar a escribir pruebas de aceptación automatizadas desde el principio. Para ello, necesitará:
+- Elegir una plataforma tecnológica y herramientas de prueba.
+- Configurar una compilación automatizada sencilla.
+- Elaborar historias de usuario. 
+
+Luego, se puede implementar un proceso riguroso:
+- Clientes, analistas y evaluadores definen los criterios de aceptación.
+- Los evaluadores trabajan con los desarrolladores para automatizar las pruebas de aceptación según los criterios de aceptación.
+- Los desarrolladores programan el comportamiento para cumplir con los criterios de aceptación.
+- Si falla alguna prueba automatizada (ya sea unitaria, de componentes o de aceptación), los desarrolladores priorizan su corrección.
+
+>Lograr que un equipo se aficione a las pruebas automatizadas es más fácil si se empieza desde el inicio del proyecto.
+>Sin embargo, también es fundamental que todos los miembros del equipo, incluidos los clientes y los jefes de proyecto, comprendan estos beneficios. Hemos visto proyectos cancelados porque el cliente consideraba que se dedicaba demasiado tiempo a las pruebas de aceptación automatizadas. Si el cliente prefiere sacrificar la calidad de su conjunto de pruebas de aceptación automatizadas para lanzarlo rápidamente al mercado, tiene derecho a tomar esa decisión, pero las consecuencias deben quedar bien claras.
+>
+>Continuous Delivery - Jez Humble & David Farley
+
+Seguir el proceso que describimos cambia la forma en que los desarrolladores escriben código. Al comparar bases de código desarrolladas con pruebas de aceptación automatizadas desde el principio con aquellas donde las pruebas de aceptación se han implementado posteriormente, casi siempre observamos una mejor encapsulación, una intención más clara, una separación de responsabilidades más precisa y una mayor reutilización del código en el primer caso. Esto constituye un verdadero círculo virtuoso: realizar las pruebas en el momento adecuado conduce a un mejor código.
+
+##### Proyecto intermedio
+
+La mejor manera de introducir las pruebas automatizadas es comenzar con los casos de uso más comunes,
+importantes y de mayor valor de la aplicación. Esto requerirá conversaciones con el cliente para identificar claramente dónde reside el verdadero valor comercial, y luego proteger esta funcionalidad contra regresiones mediante pruebas. Basándose en estas conversaciones, se deben automatizar las pruebas de flujo de trabajo que cubran estos escenarios de alto valor.
+Esta estrategia implica que, al automatizar solo el caso ideal, tendrá que realizar una cantidad proporcionalmente mayor de pruebas manuales para garantizar que el sistema funcione correctamente.
+
+##### Proyecto legacy
+
+La prioridad principal al trabajar con un sistema de este tipo es crear un proceso de compilación automatizado,
+si no existe, y luego crear una estructura de pruebas funcionales automatizadas. 
+
+Es importante reunirse con los usuarios del sistema para identificar sus usos de mayor valor y crear un conjunto de pruebas automatizadas generales que cubran esta funcionalidad principal. No debería dedicar demasiado tiempo a esto, ya que se trata de un esqueleto para proteger las funciones heredadas.
+
+Más adelante, agregará nuevas pruebas de forma incremental para el nuevo comportamiento que incorpore. Estas son, esencialmente, **Smoke tests** para su sistema heredado. Una vez que estas pruebas estén implementadas, puede comenzar el desarrollo de las historias.
+
+En este punto, es útil adoptar un enfoque por capas para sus pruebas automatizadas:
+- La primera capa debe consistir en pruebas muy simples y rápidas para los problemas que impiden realizar pruebas y desarrollo útiles en la funcionalidad en la que esté trabajando.
+- La segunda capa prueba la funcionalidad crítica para una historia en particular.
+
+Un problema particular de estos sistemas es que el código a menudo no es muy modular ni está bien estructurado. Por lo tanto, es común que un cambio en una parte del código afecte negativamente el  comportamiento en otra área. Una estrategia útil en tales circunstancias puede ser incluir una validación cuidadosa del estado de la aplicación al finalizar la prueba.
+
+### Principales pruebas automáticas
+
+| Prueba / validación mencionada                             | Capítulo                                         | Relevancia                                             |
+| ---------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
+| **Unit Tests**                                             | Chapter 5 / 7 / 12                               | Muy alta: sostienen feedback rápido y el commit stage.         |
+| **Acceptance Tests**                                       | Chapter 5 / 8                                    | Muy alta: validan comportamiento funcional relevante.          |
+| **Smoke Tests / Integrated Smoke Tests**                   | Chapter 5 / 6                                    | Alta: validación rápida post-deploy.                           |
+| **Integration Testing**                                    | Chapter 4 — *Implementing a Testing Strategy*    | Alta: verifica colaboración entre partes técnicas.             |
+| **Capacity Tests / Capacity Testing**                      | Chapter 9 — *Testing Nonfunctional Requirements* | Alta cuando capacidad/performance es crítica para liberar.     |
+| **Testing Your Environment’s Configuration**               | Chapter 6 — *Build and Deployment Scripting*     | Alta: reduce riesgo por configuración y entorno.               |
+
+#### Test unitarios
+
+Las pruebas unitarias aparecen como la base técnica más baja y más amplia de la estrategia de pruebas, normalmente dentro de la idea del deployment pipeline y también de la pirámide de automatización.
+
+Las pruebas unitarias deben ser la primera línea de defensa. Son las pruebas más rápidas, más baratas y más fáciles de ejecutar con mucha frecuencia. Si las pruebas unitarias tardan demasiado, dejan de servir como mecanismo cotidiano de validación para los desarrolladores.
+
+Deben probar unidades pequeñas de comportamiento, validar piezas pequeñas del sistema de forma aislada.
+Eso permite encontrar errores con precisión y hace que, cuando fallan, sea más fácil saber qué se rompió.
+
+El principal objetivo es detectar problemas muy temprano, antes de llegar a pruebas más costosas como integración, aceptación o pruebas manuales. Por eso deberían ejecutarse constantemente, idealmente en cada commit o integración.
+
+```text
+               Flujo real                          Flujo de prueba
+                    │                                    │
+                    ▼                                    ▼
+           ┌──────────────────┐                  ┌──────────────────┐
+           │ API / UI         │                  │ Prueba unitaria  │
+           └────────┬─────────┘                  └────────┬─────────┘
+                    │                                     │
+                    ▼                                     ▼
+           ┌──────────────────┐                  ┌──────────────────┐
+           │ Servicio         │                  │ Servicio         │
+           │                  │                  │                  │
+           └───────┬─────┬────┘                  └───────┬─────┬────┘
+                   │     │                               │     │
+                   ▼     ▼                               ▼     ▼
+          ┌────────────┐ ┌────────────┐        ┌────────────┐ ┌────────────┐
+          │ Repo real  │ │ Mail real  │        │ Stub / Fake│ │ Mock / Spy │
+          └─────┬──────┘ └─────┬──────┘        └────────────┘ └────────────┘
+                │              │
+                ▼              ▼
+          ┌────────────┐ ┌────────────┐
+          │ SQL / DB   │ │ SMTP / API │
+          └────────────┘ └────────────┘
+```
+
+##### Deben ser automatizadas y formar parte del build
+
+- No son algo “extra” o separado del proceso normal.
+- Deberían estar integradas al build automático y ser una condición básica para considerar que el sistema está sano.
+- Si fallan, el build debe considerarse fallido.
+
+##### No reemplazan a otros tipos de prueba
+
+- Las pruebas unitarias alcancen por sí solas.
+- Sirven para validar lógica local, pero no alcanzan para demostrar que el sistema completo funciona bien.
+
+##### Deben dar confianza para refactorizar
+
+- Uno de los aportes más importantes es permitir cambios frecuentes con menor riesgo.
+- No se puede liberar seguido si cada cambio pequeño rompe cosas y nadie lo detecta rápido.
+
+Las pruebas unitarias son una de las herramientas que permiten:
+- refactorizar,
+- mantener diseño limpio,
+- y sostener evolución continua del código.
+
+##### Deben ser muchas más que las pruebas de niveles superiores
+
+Se debe promover una estrategia donde haya:
+- muchas pruebas unitarias,
+- menos pruebas de aceptación,
+- y todavía menos pruebas manuales o de punta a punta pesadas.
+
+##### Resumen conceptual
+
+- rápidas
+- automatizadas
+- aisladas
+- ejecutables en cada build
+- baratas de mantener
+- útiles para detectar errores temprano
+- fundamentales para poder entregar con frecuencia
+- insuficientes por sí solas para validar el sistema completo
+
+#### Test de aceptación
+
+Las pruebas de aceptación permiten verificar si el sistema realmente satisface los requisitos del negocio.
+
+Si las pruebas unitarias validan piezas pequeñas del código, las de aceptación validan comportamientos completos del sistema desde una perspectiva más cercana al usuario o al negocio.
+
+El objetivo principal es comprobar que la aplicación implementa correctamente los criterios de aceptación de una historia, requerimiento o funcionalidad. No apuntan tanto a detalles internos de diseño, sino a responder si el sistema se comporta como debería desde el punto de vista funcional.
+
+Dentro del deployment pipeline, suelen aparecer en etapas posteriores a las pruebas unitarias. Primero se valida que el código compile y pase las pruebas unitarias; luego se despliega en un entorno adecuado y se ejecutan las pruebas de aceptación automatizadas para validar el comportamiento funcional del sistema.
+
+```text
+   Aceptación por UI         Aceptación por endpoint        Aceptación por caso de uso
+
+    Real      Prueba          Real        Prueba             Real        Prueba
+     │           │             │             │                │             │
+     ▼           ▼             ▼             ▼                ▼             ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   ┌───────────┐ ┌──────────┐
+│ Usuario  │ │ Prueba   │ │ UI       │ │ Prueba   │   │ Endpoint  │ │ Prueba   │
+│ negocio  │ │ acept.   │ │          │ │ acept.   │   │ HTTP / API│ │ acept.   │
+└────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘   └────┬──────┘ └────┬─────┘
+     │            │            │            │              │             │
+     └─────┬──────┘            └─────┬──────┘              └──────┬──────┘
+           ▼                         ▼                            ▼
+   ┌──────────────┐           ┌──────────────┐              ┌──────────────┐
+   │ UI           │           │ Endpoint     │              │ Caso de uso  │
+   │              │           │ HTTP / API   │              │              │
+   └──────┬───────┘           └──────┬───────┘              └──────┬───────┘
+          ▼                          ▼                             ▼
+   ┌──────────────┐           ┌──────────────┐              ┌──────────────┐
+   │ Endpoint     │           │ Caso de uso  │              │ Reglas de    │
+   │ HTTP / API   │           │              │              │ negocio      │
+   └──────┬───────┘           └──────┬───────┘              └──────┬───────┘
+          ▼                          ▼                             ▼
+   ┌──────────────┐           ┌──────────────┐              ┌──────────────┐
+   │ Caso de uso  │           │ Caso de uso  │              │ DB / colas / │
+   │              │           │              │              │ APIs / arch. │
+   └──────┬───────┘           └──────┬───────┘              └──────┬───────┘
+          ▼                          ▼                             ▼
+```
+
+##### Deben estar automatizadas
+
+- Sin automatización no hay feedback rápido, repetible ni confiable.
+- Una prueba manual puede servir en ciertos casos, pero no escala bien dentro de una práctica seria de entrega continua.
+- Funcionan como una especificación ejecutable
+- Describen qué debe hacer el sistema.
+- Deben ser comprensibles para negocio, testers y desarrolladores.
+- Además, pueden ejecutarse para comprobar que ese comportamiento realmente ocurre.
+- Son más lentas y costosas.
+- Tocan más partes del sistema y Suelen requerir más preparación.
+- Tardan más en ejecutarse y son más frágiles.
+
+##### No conviene abusar de ellas para cubrir cosas que deberían resolverse con pruebas unitarias.
+
+- Deben probar el comportamiento funcional, no los detalles internos.
+- Su objetivo es validar capacidades del sistema y flujos de negocio completos.
+- Prueban el qué, más que el cómo.
+- No necesariamente deben pasar por la UI.
+- Deben ser confiables y repetibles.
+- Tienen que ser deterministas, si fallan aleatoriamente o dependen de datos inestables, erosionan la confianza en el pipeline.
+
+##### Resumen conceptual
+
+- funcionales
+- automatizadas
+- orientadas al negocio
+- más lentas que las unitarias
+- más costosas de mantener
+- útiles para validar criterios de aceptación
+- importantes dentro del deployment pipeline
+- cercanas al comportamiento real del sistema
+- insuficientes por sí solas para cubrir todos los niveles de prueba
+
+#### Test de integración
+
+Si la aplicación se comunica con diversos sistemas externos mediante una serie de protocolos diferentes, o si consta de varios módulos débilmente acoplados con interacciones complejas entre ellos, entonces las pruebas de integración se vuelven cruciales.
+Son las pruebas que garantizan que cada parte independiente de su aplicación funcione correctamente con los servicios de los que depende.
+
+Las pruebas de integración buscan verificar que nuestro código funcione correctamente cuando interactúa con otras partes reales del sistema.
+
+```text
+                 Flujo real                         Flujo de prueba
+                      │                                   │
+                      ▼                                   ▼
+              ┌──────────────┐                   ┌──────────────────┐
+              │ API          │                   │ Prueba de        │
+              │              │                   │ Integración      │
+              └──────┬───────┘                   └────────┬─────────┘
+                     │                                    │
+                     └──────────────┬─────────────────────┘
+                                    ▼
+                           ┌──────────────────┐
+                           │ Repositorio / DAO│
+                           └────────┬─────────┘
+                                    ▼
+                           ┌──────────────────┐
+                           │ SQL / DB         │
+                           └──────────────────┘
+```
+
+Esas **otras partes** pueden ser, por ejemplo:
+- la base de datos,
+- el sistema de archivos,
+- una cola,
+- un servicio externo,
+- una API,
+- el contenedor DI,
+- o incluso otro módulo interno.
+
+Qué validan exactamente:
+- los componentes se conectan bien;
+- las configuraciones son correctas;
+- los contratos entre capas o servicios son compatibles;
+- la infraestructura responde como el código espera;
+- y el comportamiento conjunto produce el resultado correcto.

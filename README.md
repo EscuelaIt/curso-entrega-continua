@@ -16,11 +16,11 @@ Esta sesión se concentra en las condiciones que hacen viable la integración fr
 
 En esta sesión se introduce *Accelerate* como marco para medir el desempeño de entrega de software con evidencia empírica. Se trabajan las cuatro métricas principales —lead time, deployment frequency, change failure rate y time to restore service— para entender el delivery como un sistema y discutir cómo velocidad y estabilidad pueden mejorar en conjunto.
 
-#### 4 - Calidad: testing como habilitador
-Nos metemos en testing con criterio de entrega continua: qué tipos de pruebas convienen (unitarias, integración, arquitectura) y por qué el objetivo es **reducir incertidumbre rápido**. Vemos cómo una estrategia de tests mal planteada puede frenar el delivery (tests lentos, frágiles, duplicados) y cómo construir un set mínimo que actúe como red de seguridad real para integrar cambios con frecuencia.
-
-#### 5 - Arquitectura para despliegue continuo
+#### 4 - La arquitectura como habilitador de la entrega continua
 Analizamos qué características arquitectónicas facilitan CD: bajo acoplamiento, separación de responsabilidades, límites claros entre componentes y evolución segura del sistema. Introducimos el concepto de **compatibilidad hacia atrás** (API/DB) como requisito práctico, no teórico, y cómo pensar la modularidad con una mirada medible (métricas de componentes, dependencias, puntos de fricción).
+
+#### 5 - Pruebas automatizadas
+Nos metemos en testing con criterio de entrega continua: qué tipos de pruebas convienen (unitarias, integración, arquitectura) y por qué el objetivo es **reducir incertidumbre rápido**. Vemos cómo una estrategia de tests mal planteada puede frenar el delivery (tests lentos, frágiles, duplicados) y cómo construir un set mínimo que actúe como red de seguridad real para integrar cambios con frecuencia.
 
 #### 6 - Deployment Pipeline
 Construimos la idea de “pipeline” como mecanismo de feedback y control de riesgo, no como un script. Vemos buenas prácticas: stages, separación CI/CD, artefactos, promoción, trazabilidad, y gates de calidad. Luego aterrizamos esto en el proyecto guía: cómo se automatiza el despliegue a un entorno (staging) y cómo se valida post-deploy (smoke tests / healthchecks) para evitar “deploy exitoso pero sistema roto”.
