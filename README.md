@@ -1,19 +1,16 @@
 # Curso de Entrega Continua
 
-Este repositorio es el **proyecto guía** del curso de Integración y Despliegue Continuo (CI/CD).
+Este repositorio es el **proyecto guía** del curso de Entrega Continua (CI/CD).
 
 ### Roadmap del curso (sesiones y entregables)
 
 #### 1 - Introducción al concepto de entrega continua
-
 En esta primera sesión se presenta qué problema busca resolver la entrega continua: reducir el costo, el tiempo y el riesgo del cambio. Se introduce la diferencia entre integración continua, entrega continua y despliegue continuo, y se plantea al pipeline de despliegue como la representación ejecutable del proceso de entrega, no como una simple cadena de tareas.
 
 #### 2 - ¿Cómo trabajar para integrar y entregar con frecuencia?
-
 Esta sesión se concentra en las condiciones que hacen viable la integración frecuente: cambios pequeños, bajo trabajo en progreso y trabajo cercano a la rama principal. El foco está puesto en el diseño del software como habilitador del delivery, mostrando por qué la legibilidad, la cohesión, el bajo acoplamiento, la testabilidad y una buena distribución de responsabilidades reducen el costo de cambio y facilitan ramas cortas e integración temprana.
 
 #### 3 - Desempeño en la entrega de software: el enfoque de Accelerate
-
 En esta sesión se introduce *Accelerate* como marco para medir el desempeño de entrega de software con evidencia empírica. Se trabajan las cuatro métricas principales —lead time, deployment frequency, change failure rate y time to restore service— para entender el delivery como un sistema y discutir cómo velocidad y estabilidad pueden mejorar en conjunto.
 
 #### 4 - La arquitectura como habilitador de la entrega continua
