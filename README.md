@@ -22,7 +22,7 @@ Analizamos qué características arquitectónicas facilitan CD: bajo acoplamient
 #### 5 - Pruebas automatizadas
 Nos metemos en testing con criterio de entrega continua: qué tipos de pruebas convienen (unitarias, integración, arquitectura) y por qué el objetivo es **reducir incertidumbre rápido**. Vemos cómo una estrategia de tests mal planteada puede frenar el delivery (tests lentos, frágiles, duplicados) y cómo construir un set mínimo que actúe como red de seguridad real para integrar cambios con frecuencia.
 
-#### 6 - Deployment Pipeline
+#### 6 - Pipeline de despliegue
 Construimos la idea de “pipeline” como mecanismo de feedback y control de riesgo, no como un script. Vemos buenas prácticas: stages, separación CI/CD, artefactos, promoción, trazabilidad, y gates de calidad. Luego aterrizamos esto en el proyecto guía: cómo se automatiza el despliegue a un entorno (staging) y cómo se valida post-deploy (smoke tests / healthchecks) para evitar “deploy exitoso pero sistema roto”.
 
 #### 7 - Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo

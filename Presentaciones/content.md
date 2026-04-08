@@ -1490,3 +1490,415 @@ Ejemplos típicos:
 - a medida que bajamos, las pruebas se vuelven más precisas, más rápidas y más cercanas al diseño interno;
 - ningún nivel reemplaza a los demás;
 - y una estrategia sana combina varios niveles para reducir incertidumbre rápido y con buen costo.
+
+### Análisis estático y métricas relevantes
+
+En el marco de *Continuous Delivery*, el análisis estático aparece como parte del **commit stage**, es decir, como una forma rápida de detectar problemas de salud del código antes de invertir más tiempo en etapas posteriores del pipeline.
+
+Humble y Farley incluyen explícitamente dentro del commit stage el análisis del código para verificar su salud y sostienen que, si ciertas métricas no cumplen umbrales previamente definidos, el commit stage debe fallar del mismo modo que fallaría un test. La idea de fondo es simple: si una herramienta automática puede detectar pronto una degradación relevante, conviene usarla ahí, cuando corregir todavía es barato.
+
+#### Qué es análisis estático
+
+Llamamos **análisis estático** al examen automático del código sin ejecutar la aplicación. Su propósito no es demostrar corrección completa, sino encontrar señales tempranas de problemas como:
+
+- errores evidentes;
+- violaciones de estilo o convenciones;
+- código duplicado;
+- complejidad excesiva;
+- dependencias problemáticas;
+- reglas de arquitectura incumplidas;
+- y defectos de seguridad detectables sin ejecución.
+
+###### No reemplaza a las pruebas automatizadas. Cumple otra función:
+
+- las pruebas validan comportamiento;
+- el análisis estático inspecciona propiedades estructurales del código;
+- ambos, juntos, mejoran la señal temprana del commit stage.
+
+![](analisis-estatico.jpg)
+
+#### Para qué sirve dentro del pipeline
+
+- detectar degradaciones pronto, antes de promover un artefacto;
+- y evitar que el equipo normalice un deterioro gradual del código base.
+
+###### Usado correctamente, el análisis estático ayuda a sostener
+
+- bajo costo de cambio;
+- legibilidad;
+- testabilidad;
+- modularidad;
+- y una base de código menos propensa a introducir errores por acoplamiento, duplicación o complejidad innecesaria.
+
+#### Métricas relevantes
+
+- cobertura de tests;
+- duplicación de código;
+- complejidad ciclomática;
+- acoplamiento aferente y eferente;
+- cantidad de warnings;
+- y estilo de código.
+
+##### 1. Cobertura de tests
+
+La cobertura sirve como señal parcial, no como prueba de calidad. Una cobertura extremadamente baja puede indicar una red de seguridad insuficiente. Pero una cobertura alta, por sí sola, no demuestra que el sistema esté bien probado.
+
+###### A tener en cuenta
+
+- detectar zonas sin protección automatizada;
+- evitar caídas abruptas respecto de la línea base;
+- usarla como señal complementaria, no como objetivo fetichizado.
+
+###### Uso no recomendado
+
+- exigir un porcentaje alto sin mirar qué se está cubriendo;
+- premiar tests triviales que sólo inflan números;
+- bloquear merges por décimas irrelevantes sin mejorar feedback real.
+
+##### 2. Duplicación de código
+
+La duplicación es relevante porque incrementa costo de cambio y riesgo de inconsistencias. Si una misma lógica aparece repetida en varios puntos, una corrección futura exige coordinación innecesaria.
+
+###### A tener en cuenta
+
+- duplicación nueva introducida por un cambio;
+- duplicación en módulos críticos o inestables;
+- y tendencia de crecimiento, no sólo foto absoluta.
+
+##### 3. Complejidad ciclomática
+
+Es una aproximación a cuántos caminos lógicos tiene un fragmento de código. No reemplaza juicio de diseño, pero sí ayuda a detectar métodos o componentes difíciles de entender, probar y modificar.
+
+###### Conviene usarla para
+
+- señalar funciones candidatas a refactorización;
+- evitar crecimiento descontrolado en código nuevo;
+- y revisar puntos donde la lógica condicional vuelve frágil el cambio.
+
+No conviene usarla como único criterio de diseño. Hay código con complejidad moderada que está bien modelado y código con complejidad baja pero acoplamiento pésimo.
+
+```text
+inicio
+  |
+  v
+        /-----------\
+       <  if x > 0?  >
+        \-----+-----/
+          si | no
+             |-------------------------------> fin
+             v
+      /---------------\
+     < while hayMas?   >
+      \------+--------/
+         si  |  no
+             |-------------------------------> fin
+             v
+    /------------------\
+   < if itemValido?     >
+    \------+-----------/
+       si  |  no
+           |--------------------+
+           v                    |
+    /------------------\        |
+   < for cada sub?      >       |
+    \------+-----------/        |
+       si  |  no                |
+           |                    |
+           v                    |
+       procesar                 |
+           |                    |
+           +--------------------+
+                vuelve al for
+
+```
+
+Lectura del ejemplo:
+- cada decisión (`if`, `while`, `for`) agrega al menos un camino de ejecución posible;
+- cuanto más caminos posibles tiene un método, más casos de prueba suelen hacer falta para recorrerlo con criterio;
+- y aunque no todos los caminos tengan el mismo peso, una proliferación de bifurcaciones suele ser una señal de código más difícil de entender, mantener y modificar.
+
+##### 4. Acoplamiento aferente y eferente
+
+Estas métricas ayudan a mirar dependencias entre módulos:
+
+- **acoplamiento aferente**: cuántos componentes dependen de uno dado;
+- **acoplamiento eferente**: de cuántos componentes depende ese componente.
+
+```text
+                 ┌──────────────┐
+                 │  Modulo A    │
+                 └──────┬───────┘
+                        │
+                        v
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  Modulo B    │-->|              |-->|  Modulo Y    │
+└──────────────┘   │   Modulo X   │   └──────────────┘
+                   │              │
+┌──────────────┐   └──────┬───────┘   ┌──────────────┐
+│  Modulo C    │--------->│           │  Modulo Z    │
+└──────────────┘          └---------->|              │
+                                      └──────────────┘
+
+Hacia Modulo X:
+- A, B y C dependen de X
+- acoplamiento aferente de X = 3
+
+Desde Modulo X:
+- X depende de Y y Z
+- acoplamiento eferente de X = 2
+```
+
+Son relevantes porque un pipeline serio no sólo verifica que el código compile; también debería ayudar a que la estructura siga siendo modificable. Cuando el acoplamiento empeora, el costo de cambio suele subir aunque el build siga verde.
+
+##### 5. Cantidad de warnings
+
+La cantidad de warnings puede ser una señal útil si los warnings importan de verdad. Si el equipo tolera miles de warnings históricos, agregar uno más deja de tener significado.
+
+###### La práctica sana suele ser
+
+- congelar la línea base;
+- impedir warnings nuevos en código modificado;
+- y reducir gradualmente el stock histórico.
+
+##### 6. Estilo de código
+
+El estilo no es la métrica más profunda, pero sí una de las más baratas de automatizar. Su valor está en evitar discusiones repetitivas y reducir ruido cognitivo.
+
+###### El pipeline debería usar estilo para
+
+- mantener consistencia;
+- liberar revisión humana para temas más importantes;
+- y detectar rápido desvíos objetivos de formato o convención.
+
+##### 7. Reglas de arquitectura y dependencias
+
+En sistemas medianos o grandes conviene automatizar reglas como:
+- capas que no deben depender entre sí;
+- módulos que no deberían importar cierta infraestructura;
+- ausencia de ciclos entre paquetes;
+- restricciones sobre acceso a base de datos;
+- y uso prohibido de APIs obsoletas o inseguras.
+
+Estas reglas suelen ser más valiosas que muchas métricas superficiales, porque atacan directamente la erosion arquitectónica que después vuelve lento todo el delivery.
+
+#### Cómo elegir umbrales razonables
+
+Los umbrales útiles se eligen por su capacidad de mejorar feedback sin volver ruidoso el pipeline.
+
+###### Algunos criterios prácticos
+
+- empezar por pocas reglas de alto valor;
+- preferir bloquear degradaciones nuevas antes que exigir corregir todo lo histórico de una vez;
+- ajustar por tipo de sistema y lenguaje;
+- revisar falsos positivos con disciplina;
+- y mantener el commit stage rápido.
+
+Esto es importante: si para “medir mejor” el equipo convierte el commit stage en una etapa lenta, perdió una de las propiedades  centrales de la estrategia de entrega continua.
+
+Las métricas son peligrosas cuando se transforman en objetivos aislados. En ese momento dejan de informar y empiezan a distorsionar el comportamiento.
+
+#### Relación con métricas de delivery
+
+- las métricas de **análisis estático** hablan de la salud estructural del código;
+- las métricas de **delivery** hablan del desempeño del sistema de entrega.
+
+###### Por eso
+
+- cobertura, complejidad o acoplamiento no reemplazan lead time o change failure rate;
+- y deployment frequency o MTTR no dicen por sí solas si el diseño del código se está degradando.
+
+###### Ambos conjuntos se complementan
+
+- uno ayuda a detectar riesgo técnico temprano;
+- el otro permite evaluar si el proceso completo de entrega mejora o se degrada.
+
+--------
+
+# Pipeline de despliegue
+
+Entendemos el **deployment pipeline** como mecanismo de feedback, trazabilidad y reducción de riesgo.
+El pipeline de despliegue es el patrón clave que permite la entrega continua.
+
+#### ¿Qué problema resuelve?
+
+El pipeline existe porque integrar código no alcanza. Un sistema puede compilar, pasar unit tests y seguir siendo un candidato de release pobre: puede no arrancar, no desplegarse correctamente, fallar en un entorno más realista o exigir pasos manuales frágiles.
+
+#### Definición
+
+>En un nivel abstracto, una canalización de despliegue es una manifestación automatizada de su proceso para llevar el software desde el control de versiones hasta las manos de sus usuarios.
+>
+>Continuous Delivery - Jez Humble & David Farley
+
+Humble y Farley definen el deployment pipeline como la manifestación automatizada del proceso para llevar software desde control de versiones hasta manos de usuarios. La definición es importante por tres razones:
+
+- habla de **proceso completo**, no de una herramienta aislada;
+- presupone **automatización**, porque la repetibilidad y la velocidad son deseables;
+- y exige **visibilidad**, porque el equipo debe poder ver qué cambio pasó qué etapa, cuál falló y dónde está desplegado cada candidato a release.
+
+Un deployment pipeline es un sistema de validación y promoción de cambios que entrega feedback temprano, conserva trazabilidad y hace rutinario el pasaje de un cambio desde commit hasta release.
+
+#### Qué no es un deployment pipeline
+
+- no es simplemente un servidor de CI;
+- no es una colección de tareas inconexos;
+- no es una secuencia de aprobaciones humanas sin nueva evidencia técnica;
+- no es un script de despliegue ejecutado a mano;
+- no es recompilar una y otra vez el mismo código en ambientes distintos;
+
+#### Anatomía mínima del deployment pipeline
+
+Una implementación básica del pipeline se entiende mejor como una secuencia de etapas que elevan progresivamente la confianza sobre un mismo candidato a release.
+
+| Etapa | Pregunta que responde | Evidencia principal | Decisión |
+|-------|------------------------|---------------------|----------|
+| Commit stage | ¿el cambio está sano técnicamente? | compilación, tests rápidos, análisis, artefacto | crear o descartar candidato |
+| Automated acceptance test gate | ¿el sistema entrega el comportamiento esperado? | pruebas funcionales y de regresión en entorno más real | promover o bloquear |
+| Subsequent test stages | ¿soporta exigencias adicionales reales? | pruebas no funcionales, exploratorias, integración, UAT | habilitar release |
+| Release / deployment | ¿puede desplegarse y liberarse de forma segura y repetible? | despliegue automatizado, smoke tests, rollback, trazabilidad | liberar o revertir |
+
+```text
+┌──────────────┐    ┌────────────────────┐    ┌───────────────────┐    ┌──────────────────────┐
+│ Commit stage │ -> │ Acceptance test    │ -> │ Etapas posteriores│ -> │ Release / deployment │
+│ build+tests  │    │ funcional+regresión│    │ no funcionales    │    │ smoke+rollback       │
+└──────────────┘    └────────────────────┘    └───────────────────┘    └──────────────────────┘
+```
+
+- cada etapa agrega evidencia nueva sobre el mismo candidato a release;
+- el cambio no avanza por “aprobación administrativa”, sino por evidencia técnica y operativa;
+- y cuanto más avanza, más cara es la validación, por eso conviene filtrar temprano lo que ya está mal.
+
+##### 1. Commit stage
+
+El commit stage es la primera línea de defensa y debe eliminar cuanto antes builds inviables. El objetivo es descubrir rápidamente que algo está roto y no gastar tiempo en un candidato obviamente malo.
+
+- debe ejecutarse en cada commit;
+- debe ser rápido;
+- debe crear el artefacto que usarán las etapas posteriores;
+- y debe fallar ante problemas de compilación, tests de commit o umbrales de calidad.
+
+Según el libro, esta etapa debería idealmente tardar menos de cinco minutos, y ciertamente no más de diez.
+
+###### El commit stage suele incluir:
+
+- compilación o empaquetado;
+- tests de commit, predominantemente unitarios;
+- análisis estático o métricas relevantes;
+- y creación de binarios o paquetes.
+
+La idea importante no es “meter todo en la primera etapa”, sino todo lo que aporte señal temprana con costo bajo.
+
+##### 2. Automated acceptance test gate
+
+Esta es la segunda barrera seria del pipeline. El commit stage reduce incertidumbre técnica de bajo nivel; la etapa de aceptación automatizada reduce incertidumbre funcional y operativa básica.
+
+Unit tests no alcanzan. Un sistema puede tener buena cobertura y aun así no arrancar o no comportarse como espera el usuario.
+Por eso esta etapa:
+- verifica criterios de aceptación y regresión;
+- debe correr sobre un entorno razonablemente parecido al real;
+- no debe estar “tercerizada” a un equipo separado del desarrollo;
+- y cuando falla, el equipo debe reaccionar de inmediato.
+
+##### 3. Subsequent test stages (Etapas posteriores)
+
+Después de la aceptación automatizada, el release candidate puede atravesar otras etapas según el dominio y el riesgo:
+
+- pruebas no funcionales;
+- pruebas de capacidad o performance;
+- pruebas de seguridad;
+- pruebas exploratorias;
+- UAT;
+- validaciones de compatibilidad;
+- y despliegues en ambientes de demo o staging.
+
+El pipeline no es idéntico en todos los proyectos, pero sí conserva una lógica estable:
+
+- primero eliminar rápido lo obviamente malo;
+- luego invertir más tiempo y recursos en candidatos que ya demostraron aptitud;
+- y hacer los ambientes progresivamente más parecidos a producción a medida que crece la confianza.
+
+##### 4. Release y despliegue
+
+Humble y Farley sostienen que el release debería ser una tarea `push-button`: elegir una versión ya validada y desplegarla de modo repetible. Eso sólo es posible si el proceso de despliegue fue ensayado muchas veces antes, en otros ambientes, con el mismo mecanismo.
+
+###### El libro insiste además en dos ideas centrales:
+
+- tener capacidad de **back-out** o rollback;
+- y tratar configuración, infraestructura y datos como parte del sistema de entrega.
+
+#### Prácticas fundamentales del deployment pipeline
+
+##### 1. Construir los binarios una sola vez
+
+El mismo artefacto que pasó commit stage y aceptación debe ser el que se promueve entre ambientes.
+
+###### Razones
+
+- recompilar reintroduce variabilidad;
+- cambia la cadena de confianza;
+- rompe trazabilidad entre lo probado y lo liberado;
+- y hace posible que producción ejecute algo distinto de lo validado.
+
+##### 2. Desplegar del mismo modo en todos los ambientes
+
+Usar el mismo proceso de despliegue en desarrollo, testing y producción reduce riesgo porque el procedimiento queda probado continuamente.
+No significa que todos los ambientes sean idénticos en escala o permisos. Significa que:
+- la mecánica de despliegue debe ser la misma;
+- la configuración debe variar externamente;
+- y el pipeline no debe depender de “pasos especiales para producción”.
+
+##### 3. Separar binario y configuración
+
+Una consecuencia directa de promover el mismo artefacto es separar lo invariante de lo específico del ambiente.
+
+- el binario no debería venir “armado para staging” o “armado para producción”;
+- la configuración no debería quedar embebida de manera rígida en el artefacto;
+- y si el sistema sólo funciona cuando alguien “lo acomoda a mano”, el pipeline no está resuelto.
+
+##### 4. Hacer visible el estado del pipeline
+
+El propósito del pipeline no es sólo bloquear. También debe dar visibilidad:
+
+- qué commits rompieron el sistema;
+- qué release candidates están disponibles;
+- qué versión está desplegada en cada ambiente;
+- cuánto tardan las etapas;
+- y dónde están los cuellos de botella.
+
+##### 5. Medir para optimizar el flujo completo
+
+- un pipeline sirve para validar cambios;
+- pero también para descubrir fricciones del proceso de entrega;
+- por eso hay que medir duración de etapas, tasa de fallas, esperas y retrabajo.
+
+La pregunta de fondo es: “¿cuánto tarda un cambio en volverse liberable y llegar a usuarios?”.
+
+##### 6. Diseñar release y rollback como procesos repetibles
+
+Un release serio no depende de heroicidad ni memoria individual. Debe tener:
+
+- procedimiento automatizado;
+- plan de release explícito;
+- smoke tests post-deploy;
+- criterio de aceptación del despliegue;
+- y estrategia de rollback o forward-fix.
+
+El libro insiste en que no debe existir un proceso distinto para hacer rollback: cuanto menos practicado esté, menos confiable será.
+
+#### Smoke tests y validación post-deploy
+
+Un despliegue no se considera exitoso porque el script terminó en verde. Debe existir una validación mínima posterior, por ejemplo:
+
+- la aplicación inicia;
+- responde health checks básicos;
+- puede ejecutar su caso de uso más elemental;
+- y sus dependencias críticas están operativas.
+
+#### Anti-patrones frecuentes
+
+- **Recompilar en cada ambiente**: destruye la garantía de que lo liberado es exactamente lo que se probó.
+- **Promover código fuente en lugar de artefactos**: si en cada ambiente se reconstruye, ya no existe una cadena confiable entre evidencia y release.
+- **Artefactos específicos por ambiente**: Si hay un paquete “para QA” y otro “para producción”, el equipo ya aceptó que no está promoviendo el mismo candidato.
+- **Commit stage lento**: cuando tarda demasiado, deja de ofrecer feedback temprano y la disciplina de integración empieza a degradarse.
+- **Acceptance tests rotos durante días**: si esta etapa falla, el equipo completo debe reaccionar. Un gate roto de manera persistente deja de ser gate y se convierte en ruido.
+- **Despliegue manual como evento excepcional**: si producción se despliega con pasos especiales, personas “indispensables” y una checklist irrepetible, el equipo no tiene delivery continuo aunque tenga CI.
+- **Aprobar sin nueva evidencia**: una etapa manual sólo se justifica si agrega información o una decisión de negocio real. Si sólo agrega espera burocrática, aumenta lead time sin reducir riesgo.
