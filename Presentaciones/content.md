@@ -1902,3 +1902,411 @@ Un despliegue no se considera exitoso porque el script terminó en verde. Debe e
 - **Acceptance tests rotos durante días**: si esta etapa falla, el equipo completo debe reaccionar. Un gate roto de manera persistente deja de ser gate y se convierte en ruido.
 - **Despliegue manual como evento excepcional**: si producción se despliega con pasos especiales, personas “indispensables” y una checklist irrepetible, el equipo no tiene delivery continuo aunque tenga CI.
 - **Aprobar sin nueva evidencia**: una etapa manual sólo se justifica si agrega información o una decisión de negocio real. Si sólo agrega espera burocrática, aumenta lead time sin reducir riesgo.
+
+------
+
+# Estrategias de release
+
+## Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo
+
+#### Breve introducción: DDL, DML y DCL
+
+SQL se organiza en sublenguajes según el tipo de operación que realizan. Tres de los más relevantes para entender qué tipo de cambios afectan a la base de datos y cómo gestionarlos en un pipeline son:
+
+###### DDL — Data Definition Language
+
+Son las sentencias que definen o modifican la estructura de la base de datos: tablas, columnas, índices, constraints, vistas, esquemas.
+
+- `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`
+- `CREATE INDEX`, `DROP INDEX`
+- `ADD COLUMN`, `RENAME COLUMN`, `DROP COLUMN`
+
+Los cambios DDL modifican el esquema. Son los que más impacto tienen en el despliegue porque suelen ser difíciles de revertir y pueden romper la compatibilidad con el código que lee o escribe datos.
+
+###### DML — Data Manipulation Language
+
+Son las sentencias que operan sobre los datos dentro de la estructura existente.
+
+- `INSERT`, `UPDATE`, `DELETE`, `SELECT`
+
+Los cambios DML no modifican el esquema, pero sí pueden ser relevantes para el pipeline cuando se trata de datos de referencia, datos de configuración o migraciones de datos que acompañan un cambio de esquema (por ejemplo, poblar una columna nueva con valores calculados a partir de una columna vieja).
+
+###### DCL — Data Control Language
+
+Son las sentencias que gestionan permisos y acceso.
+
+- `GRANT`, `REVOKE`
+
+Los cambios DCL son menos frecuentes en el flujo de desarrollo, pero importan cuando el pipeline necesita que el usuario de la aplicación tenga los permisos correctos en cada entorno. Un despliegue que falla porque "la app no tiene permisos para leer esa tabla" es un problema de DCL no gestionado.
+
+##### ¿Por qué importa esta distinción para entrega continua?
+
+Porque cada tipo de cambio tiene un perfil de riesgo distinto:
+
+| Tipo | Modifica | Reversibilidad | Riesgo en deploy |
+|------|----------|----------------|------------------|
+| DDL | Estructura | Baja: un `DROP COLUMN` pierde datos | Alto: puede romper compatibilidad con el código |
+| DML | Datos | Media: depende del volumen y la lógica | Medio: puede corromper o perder datos si no se valida |
+| DCL | Permisos | Alta: un `GRANT` se revierte con `REVOKE` | Bajo en general, pero puede bloquear el sistema si falta un permiso |
+
+El foco principal de esta sesión está en los cambios DDL, porque son los que más tensión generan con el principio de mantener el sistema siempre desplegable.
+
+La base de datos y la configuración de entornos son dos de los elementos que con mayor frecuencia quedan fuera del control del pipeline, y por eso mismo se convierten en las fuentes de riesgo más comunes al momento de desplegar. Un sistema cuyo código pasa por validación continua pero cuya base de datos se modifica con scripts manuales ejecutados "por alguien que sabe" tiene entrega parcial con un punto ciego operativo.
+
+>El concepto de entrega continua abarca todo lo necesario para crear, implementar, probar, lanzar y operar el software. Esto incluye componentes del sistema como ejecutables, configuración, la pila de host y la infraestructura, y datos.
+
+Esta sesión aborda dos problemas que suelen tratarse como secundarios pero que el libro de Humble y Farley considera parte esencial del sistema de entrega:
+- cómo gestionar los cambios de esquema de base de datos como parte del pipeline;
+- y cómo tratar la configuración de entornos como un artefacto versionable, verificable y repetible.
+
+#### ¿Por qué la base de datos suele quedar fuera del pipeline?
+
+Hay razones técnicas y culturales:
+
+- los cambios de esquema son percibidos como irreversibles o peligrosos;
+- la base de datos suele tener un "dueño" distinto del equipo de desarrollo;
+- las migraciones se ejecutan manualmente porque "es más seguro que alguien revise";
+- no existe convención sobre cómo versionar cambios de esquema;
+- y los entornos de prueba no replican las condiciones del esquema real.
+
+El resultado es que el cambio de base de datos se convierte en un evento excepcional, coordinado fuera del flujo normal de entrega. Y cuando algo se hace de forma excepcional, rara vez se hace bien bajo presión.
+
+>Un problema frecuente es que muchos proyectos y organizaciones no tratan las bases de datos como tratarían cualquier otro componente del sistema: bajo control de versiones, con pruebas y con posibilidad de recrear el esquema y los datos de referencia desde cero.
+
+#### La base de datos como parte del sistema entregable
+
+La base de datos no es un recurso externo al sistema de entrega, sino una parte constitutiva de lo que se despliega. Esto implica que:
+- los cambios de esquema deben estar bajo control de versiones;
+- deben poder aplicarse de forma automatizada;
+- deben poder verificarse en el pipeline;
+- y deben poder revertirse o mitigarse cuando algo falla.
+
+Tratar la base de datos como parte del sistema entregable no significa que el DBA desaparezca o que se elimine toda revisión humana. Significa que el cambio de esquema deja de ser un proceso artesanal desconectado del pipeline y pasa a ser un artefacto más que se versiona, se prueba y se promueve junto con el código.
+
+#### Principios para gestionar cambios de base de datos en entrega continua
+
+##### 1. Versionar todo cambio de esquema
+
+Cada modificación del esquema, ya sea una creación de tabla, un agregado de columna, un cambio de tipo o una eliminación de índice, debe estar representada como un archivo de migración versionado y almacenado en el mismo repositorio que el código de la aplicación.
+
+El equipo debe poder recrear la base de datos en cualquier punto de su ciclo de vida, junto con la aplicación que la utiliza. Esto se logra versionando cada cambio de esquema y datos de referencia de la misma manera que se versiona el código de la aplicación.
+
+Esto tiene varias consecuencias prácticas:
+
+- se puede reconstruir el esquema completo desde cero en cualquier momento;
+- se puede saber exactamente qué versión de esquema corresponde a qué versión del código;
+- y se puede reproducir el estado de la base de datos en cualquier entorno.
+
+##### 2. Tratar las migraciones como código
+
+Las migraciones no son "scripts que alguien ejecuta". Son código que forma parte del sistema y que debe cumplir los mismos estándares:
+
+- deben tener nombres descriptivos y un orden explícito;
+- deben ser idempotentes o, al menos, seguras de ejecutar una sola vez;
+- deben poder ejecutarse de forma automatizada, sin intervención manual;
+- y deben estar cubiertas por algún mecanismo de verificación.
+
+```text
+migrations/
+├── 001_create_users_table.sql
+├── 002_add_email_to_users.sql
+├── 003_create_orders_table.sql
+├── 004_add_index_orders_user_id.sql
+└── 005_add_status_to_orders.sql
+```
+
+Cada archivo representa un cambio atómico, ordenado y trazable. El pipeline puede ejecutar todas las migraciones pendientes de forma secuencial y verificar que el esquema resultante es consistente.
+
+##### 3. Hacer cambios aditivos y compatibles
+
+Idealmente se busca desacoplar el despliegue de la aplicación de la migración de la base de datos.
+
+Este es uno de los principios más importantes y más difíciles de aplicar. Un cambio de esquema compatible es aquel que no rompe la versión actual de la aplicación ni las versiones inmediatamente anteriores. Esto significa:
+
+- agregar columnas nuevas con valores por defecto o permitiendo nulos;
+- no renombrar ni eliminar columnas que el código actual todavía usa;
+- no cambiar tipos de datos de forma destructiva;
+- y, cuando sea necesario un cambio destructivo, hacerlo en fases.
+
+###### Ejemplo: renombrar una columna
+
+Un cambio destructivo sería renombrar directamente `user_name` a `username`. Si el código viejo busca `user_name` y el esquema ya cambió, el sistema se rompe.
+
+La estrategia compatible sería:
+
+1. **Fase 1** — agregar la columna nueva `username`, poblarla con los datos existentes y hacer que el código nuevo la use, mientras el código viejo sigue leyendo `user_name`.
+2. **Fase 2** — una vez que todo el código en producción usa `username`, eliminar la columna vieja `user_name`.
+
+```text
+Fase 1: cambio aditivo
+┌────────────────────────────────────────┐
+│ users                                  │
+├────────────────────────────────────────┤
+│ id            │ int                    │
+│ user_name     │ varchar (existente)    │
+│ username      │ varchar (nueva)        │
+│ email         │ varchar                │
+└────────────────────────────────────────┘
+  código v1 lee user_name
+  código v2 lee username
+  ambos funcionan
+
+Fase 2: eliminación segura
+┌────────────────────────────────────────┐
+│ users                                  │
+├────────────────────────────────────────┤
+│ id            │ int                    │
+│ username      │ varchar                │
+│ email         │ varchar                │
+└────────────────────────────────────────┘
+  código v1 ya no está en producción
+  user_name se elimina sin riesgo
+```
+
+Esta lógica es la misma que *branch by abstraction* pero aplicada al esquema: se introduce el cambio de forma gradual, se mantiene compatibilidad transitoria y se limpia después.
+
+##### 4. Integrar las migraciones al pipeline
+
+Las migraciones deben ejecutarse como parte del pipeline, no como un paso manual previo o posterior al despliegue.
+
+El proceso de migración de la base de datos debería seguir estos principios:
+- los administradores de bases de datos deben participar estrechamente en el proceso de entrega, pero sin convertirse en un cuello de botella;
+- los cambios deben ser probados;
+- los cambios deben ser reversibles siempre que sea posible;
+- y se debe poder recrear cualquier versión de la base de datos.
+
+En la práctica, esto implica que el commit stage o una etapa temprana del pipeline:
+
+- ejecuta las migraciones pendientes sobre una base de datos de prueba;
+- verifica que el esquema resultante es consistente;
+- corre las pruebas de integración contra ese esquema;
+- y si algo falla, el candidato se descarta antes de avanzar.
+
+```text
+┌──────────────┐    ┌────────────────────┐    ┌──────────────────────┐
+│ Commit stage │    │ Acceptance stage   │    │ Release / Deploy     │
+│              │    │                    │    │                      │
+│ - compile    │    │ - deploy app       │    │ - migrar esquema     │
+│ - migrate DB │--->│ - migrate DB       │--->│ - deploy app         │
+│ - unit tests │    │ - acceptance tests │    │ - smoke tests        │
+│ - artefacto  │    │                    │    │ - verificar esquema  │
+└──────────────┘    └────────────────────┘    └──────────────────────┘
+```
+
+##### 5. Contemplar rollback o mitigación
+
+No toda migración es reversible. Agregar una columna es fácil de revertir; eliminar una tabla con datos no lo es. El libro reconoce esta asimetría y propone que el equipo piense en cada migración en términos de reversibilidad:
+
+- si el cambio es revertible, incluir un script de rollback junto con la migración;
+- si el cambio no es revertible, diseñarlo de modo que no rompa la versión anterior de la aplicación;
+- y si el cambio es destructivo e irreversible, tratarlo como un release de alto riesgo con plan explícito.
+
+```text
+migrations/
+├── 005_add_status_to_orders.sql
+├── 005_add_status_to_orders_rollback.sql
+├── 006_drop_legacy_flags.sql
+└── 006_drop_legacy_flags_rollback.sql    ← puede ser un no-op si los datos se perdieron
+```
+
+La pregunta no es "¿puedo revertir siempre?" sino "¿qué hago cuando no puedo revertir?". Y la respuesta de *Continuous Delivery* es: diseñar el cambio para que no necesite reversión completa, usando fases, compatibilidad transitoria y validación previa.
+
+#### Herramientas y mecanismos de migración
+
+Propiedades que debe tener el mecanismo de migración:
+
+- **orden determinista**: las migraciones deben ejecutarse siempre en el mismo orden;
+- **idempotencia o tracking**: el sistema debe saber qué migraciones ya se aplicaron y no volver a ejecutarlas;
+- **integración con el pipeline**: debe poder invocarse de forma automatizada;
+- **visibilidad**: debe ser claro qué versión de esquema tiene cada entorno.
+
+Ejemplos de herramientas que implementan estos principios:
+
+| Herramienta | Lenguaje/ecosistema | Mecanismo |
+|-------------|---------------------|-----------|
+| Flyway | JVM | Migraciones SQL versionadas con tabla de control |
+| Alembic | Python | Migraciones programáticas vinculadas a SQLAlchemy |
+| EF Migrations | .NET | Migraciones generadas desde el modelo de datos |
+| Knex/Prisma | Node.js | Migraciones SQL o declarativas |
+
+##### Ejemplo real del proyecto Liga Libre
+![](ef-migrations.png)
+
+#### Anti-patrones en la gestión de cambios de base de datos
+
+- **Scripts manuales sin versionar**: un DBA ejecuta cambios directamente en producción sin registro en el repositorio. Si no está versionado, no existe para el pipeline.
+- **Migraciones que asumen un estado particular del esquema sin verificarlo**: una migración que falla si el entorno no tiene exactamente el estado esperado, sin manejar variantes.
+- **Cambios destructivos sin fase de transición**: renombrar o eliminar columnas sin dar tiempo a que el código se adapte.
+- **Base de datos de prueba que no refleja el esquema real**: si las pruebas corren contra un esquema simplificado o desactualizado, la migración puede fallar en producción aunque pase en el pipeline.
+- **Migración acoplada al deploy**: si la migración solo puede ejecutarse junto con un despliegue específico y en un orden preciso que requiere coordinación humana, no es automatizable.
+- **Datos de prueba gestionados manualmente**: insertar datos de referencia "a mano" en cada entorno en lugar de versionarlos como parte del sistema.
+
+Además, cada cambio aplicado a la base de datos debería ser idempotente: si se ejecuta el mismo script dos veces, el resultado debería ser el mismo que si se ejecuta una vez. Esto es importante para la automatización y para la capacidad de recuperación.
+
+## Configuración de entornos
+
+Cada aplicación necesita información diferente según el entorno en el que se ejecuta. Estos elementos deben gestionarse con cuidado. La configuración debe almacenarse con la aplicación pero separada de ella, de manera que la instancia que se despliega en cada entorno pueda configurarse adecuadamente.
+
+#### El problema
+
+La configuración de entornos abarca todo aquello que varía entre ambientes pero que es necesario para que el sistema funcione:
+
+- cadenas de conexión a bases de datos;
+- URLs de servicios externos;
+- credenciales y secretos;
+- flags de comportamiento;
+- parámetros de infraestructura (puertos, timeouts, pools de conexión).
+
+Cuando esta configuración no está gestionada de forma explícita, el equipo depende de conocimiento tácito: "en producción hay que cambiar estas tres variables a mano", "el archivo de configuración está en el servidor pero no en el repo".
+
+Un anti-patrón común es tener configuraciones diferentes en entornos diferentes que no están bajo control de versiones. Esto crea un riesgo considerable: nadie puede reproducir exactamente la configuración de producción, y nadie puede estar seguro de que el entorno de pruebas refleja las condiciones reales.
+
+#### Principios para gestionar configuración de entornos
+
+##### 1. Separar configuración del artefacto
+
+El artefacto desplegable debe ser el mismo en todos los entornos. Lo que cambia es la configuración que se le inyecta.
+
+Un binario "armado para producción" o "armado para staging" viola el principio de construir una sola vez. Si la configuración está embebida en el artefacto, cada entorno ejecuta un artefacto distinto, y la cadena de confianza se rompe.
+
+```text
+Mal: configuración embebida
+
+  artefacto-staging.exe  ←  compilado con config de staging
+  artefacto-prod.exe     ←  compilado con config de producción
+  (son artefactos distintos, lo probado no es lo desplegado)
+
+Bien: configuración externa
+
+  app.exe                ←  un solo artefacto
+  config/staging.env     ←  configuración de staging
+  config/prod.env        ←  configuración de producción
+  (el artefacto es el mismo, la configuración varía)
+```
+
+##### 2. Versionar la configuración
+
+La configuración debe estar bajo control de versiones. No necesariamente en el mismo repositorio que el código (los secretos, por ejemplo, no deberían estar en texto plano en el repo), pero sí debe existir un registro trazable de qué configuración se aplicó en cada entorno y cuándo.
+
+La gestión de la configuración es una de las áreas que más tienden a descuidarse, y sin embargo es una de las causas más frecuentes de fallas en el despliegue.
+
+##### 3. Verificar la configuración en el pipeline
+
+Si la configuración es parte del sistema entregable, debe verificarse como cualquier otro componente. Humble y Farley proponen explícitamente testear la configuración del entorno.
+
+Se deberían escribir pruebas para verificar la configuración del entorno. Por ejemplo, verificar que los servicios externos necesarios están accesibles, que las credenciales son válidas y que la configuración de la aplicación corresponde al entorno donde se despliega.
+
+Ejemplos de verificaciones:
+
+- **smoke tests de configuración**: tras el despliegue, verificar que la aplicación puede conectarse a la base de datos, alcanzar los servicios de los que depende y leer su configuración correctamente;
+- **validación de esquema de configuración**: verificar que todas las variables requeridas están presentes y tienen el tipo esperado;
+- **drift detection**: comparar la configuración declarada con la configuración efectiva del entorno.
+
+##### 4. Gestionar secretos de forma separada
+
+Las contraseñas y la información sensible no deberían almacenarse en texto plano en el sistema de control de versiones, deben gestionarse de forma separada del resto de la configuración. Humble y Farley recomiendan que las credenciales sean provistas por el equipo de operaciones o administración y que el acceso a ellas esté restringido.
+
+La separación de secretos no contradice el principio de versionar la configuración. Lo que se versiona es la estructura y los valores no sensibles. Los secretos se referencian pero no se almacenan en el repo.
+
+```text
+config/
+├── base.env              ← valores comunes (versionado)
+├── staging.env           ← valores específicos de staging (versionado)
+├── production.env        ← valores específicos de producción (versionado)
+└── secrets.env.template  ← plantilla de secretos (versionado, sin valores reales)
+
+Los valores reales de secretos se inyectan desde el vault o el pipeline.
+```
+
+##### 5. Reproducibilidad del entorno
+
+Un entorno bien gestionado es aquel que puede recrearse desde sus definiciones, sin depender de configuración manual acumulada. Esto implica:
+
+- que la creación del entorno sea un proceso automatizado;
+- que la configuración aplicada sea trazable;
+- y que no existan "ajustes manuales" que se pierdan cuando el entorno se recrea.
+
+Los ambientes y su configuración deben tratarse como código: versionados, auditables y reproducibles.
+
+Cuando un entorno no puede recrearse de forma confiable, el equipo pierde la capacidad de hacer rollback efectivo, de crear entornos de prueba realistas y de diagnosticar diferencias entre lo que funciona en un ambiente y lo que falla en otro.
+
+#### Configuración y el pipeline de despliegue
+
+La relación entre configuración y pipeline se resume así:
+
+- el pipeline construye el artefacto una sola vez;
+- en cada etapa, el artefacto se despliega con la configuración del entorno correspondiente;
+- la configuración se inyecta, no se embebe;
+- y si la configuración es incorrecta, el pipeline debe detectarlo.
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Repositorio                                     │
+│                                                                        │
+│  código fuente  +  migraciones  +  configuración (no secretos)         │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 ▼
+                    ┌────────────────────────┐
+                    │     Commit stage       │
+                    │                        │
+                    │  compile + test        │
+                    │  migrate DB (test)     │
+                    │  → artefacto único     │
+                    └───────────┬────────────┘
+                                │
+                ┌───────────────┼───────────────┐
+                ▼               ▼               ▼
+        ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+        │   Staging    │ │     UAT      │ │  Producción  │
+        │              │ │              │ │              │
+        │ artefacto    │ │ artefacto    │ │ artefacto    │
+        │ + config stg │ │ + config uat │ │ + config prd │
+        │ + migrate DB │ │ + migrate DB │ │ + migrate DB │
+        │ + smoke test │ │ + smoke test │ │ + smoke test │
+        └──────────────┘ └──────────────┘ └──────────────┘
+
+        mismo artefacto → distinta configuración → mismo proceso
+```
+
+#### Gestión conjunta: esquema + configuración + código
+
+El punto central de esta sesión es que estos tres elementos deben avanzar juntos y de forma coordinada a través del pipeline:
+
+| Elemento | Qué se versiona | Cómo se verifica | Cómo se promueve |
+|----------|-----------------|-------------------|-------------------|
+| Código | Repositorio principal | Compilación, tests unitarios, acceptance tests | Artefacto único promovido entre etapas |
+| Esquema de BD | Archivos de migración en el repositorio | Ejecución de migraciones en DB de prueba, tests de integración | Migraciones ejecutadas en cada entorno como parte del deploy |
+| Configuración | Archivos de configuración versionados + vault para secretos | Smoke tests, validación de esquema de config, drift detection | Inyección por entorno al momento del deploy |
+
+Cuando alguno de estos tres elementos queda fuera del pipeline, se introduce un punto ciego. Y los puntos ciegos tienden a manifestarse en el peor momento: durante un despliegue a producción, bajo presión, cuando menos capacidad de diagnóstico hay.
+
+#### Verificaciones recomendadas
+
+##### Para cambios de esquema
+
+- ¿La migración se ejecuta correctamente sobre el esquema actual?
+- ¿El esquema resultante es compatible con la versión actual del código y con la versión nueva?
+- ¿Existe script de rollback? ¿Fue probado?
+- ¿Los tests de integración pasan con el nuevo esquema?
+
+##### Para configuración de entornos
+
+- ¿Todas las variables requeridas están definidas?
+- ¿La aplicación puede conectarse a sus dependencias con la configuración proporcionada?
+- ¿Los valores de configuración son consistentes entre sí?
+- ¿La configuración efectiva del entorno coincide con la declarada?
+
+#### Anti-patrones frecuentes
+
+- **Configuración gestionada solo en el servidor**: si la configuración vive únicamente en archivos del servidor y no está versionada, nadie puede reproducir el entorno ni auditar cambios.
+- **Secretos en el repositorio**: almacenar credenciales en texto plano en el código fuente es un riesgo de seguridad y un anti-patrón operativo.
+- **Entornos snowflake**: entornos configurados manualmente durante meses que nadie sabe cómo recrear. Cada uno es único, irrepetible e inauditable.
+- **Configuración como excusa para no probar**: "no se puede probar porque depende de la configuración de producción" es una señal de que la configuración no está separada correctamente.
+- **Migraciones que solo se prueban en producción**: si la primera vez que una migración se ejecuta contra datos reales es en producción, el equipo asumió un riesgo que el pipeline debería haber mitigado.
+
+#### Síntesis
+
+La integración de cambios de esquema y configuración de entornos al pipeline de despliegue no es un tema accesorio o avanzado. Es una condición básica para que la entrega continua sea real y no nominal. Un equipo que versiona y valida su código pero gestiona su base de datos y sus entornos de forma manual tiene un pipeline incompleto, con puntos ciegos que se manifiestan como fallas en producción, despliegues que "solo funcionan si Juan lo hace" y rollbacks imposibles.
+
+La capacidad de delivery depende también de configuración, infraestructura, scripts de despliegue y base de datos. Si el pipeline no incluye base de datos y configuración, no es un pipeline de despliegue: es un pipeline de compilación con pasos extra.

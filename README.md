@@ -22,10 +22,10 @@ Nos metemos en testing con criterio de entrega continua: qué tipos de pruebas c
 #### 6 - Pipeline de despliegue
 Construimos la idea de “pipeline” como mecanismo de feedback y control de riesgo, no como un script. Vemos buenas prácticas: stages, separación CI/CD, artefactos, promoción, trazabilidad, y gates de calidad. Luego aterrizamos esto en el proyecto guía: cómo se automatiza el despliegue a un entorno (staging) y cómo se valida post-deploy (smoke tests / healthchecks) para evitar “deploy exitoso pero sistema roto”.
 
-#### 7 - Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo
+#### 7 - Estrategias de release: Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo
+Integramos los cambios de base de datos al esquema de despliegue continuo. Tambien veremos estrategias para realizar cambios disruptivos en una API utilizando versionado.
 
-
-#### 8 - Release strategies y feature flags
+#### 8 - Estrategias de release: feature flags
 En esta sesión ampliamos el alcance: CD/CI no termina en “subir binarios”. Introducimos **Infraestructura como Código** para reducir variabilidad y dependencia de configuraciones manuales, y definimos un mínimo de observabilidad para operar: health/readiness, logs, métricas básicas y alertas.
 
 #### 9 - Operación y observabilidad
