@@ -24,12 +24,13 @@ Construimos la idea de “pipeline” como mecanismo de feedback y control de ri
 
 #### 7 - Estrategias de release: Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo
 Integramos los cambios de base de datos al esquema de despliegue continuo. Tambien veremos estrategias para realizar cambios disruptivos en una API utilizando versionado.
+Cerramos uniendo piezas que suelen quedar sueltas: **feature flags**, estrategias de branching (trunk-based vs variantes), **semantic versioning**, versionado de APIs, y **migraciones** seguras.
 
 #### 8 - Estrategias de release: feature flags
-En esta sesión ampliamos el alcance: CD/CI no termina en “subir binarios”. Introducimos **Infraestructura como Código** para reducir variabilidad y dependencia de configuraciones manuales, y definimos un mínimo de observabilidad para operar: health/readiness, logs, métricas básicas y alertas.
+Ampliamos el alcance: CD/CI no termina en “subir binarios”. Introducimos **Infraestructura como Código** para reducir variabilidad y dependencia de configuraciones manuales, y definimos un mínimo de observabilidad para operar: health/readiness, logs, métricas básicas y alertas.
 
 #### 9 - Operación y observabilidad
 Vemos qué prácticas de trabajo son coherentes con CI/CD: DevOps como enfoque socio-técnico, XP como origen de muchas prácticas técnicas (CI, TDD, refactoring, small releases) y Agile como marco de gestión. La idea no es “repasar metodologías”, sino entender qué comportamientos y restricciones organizacionales habilitan o bloquean el delivery continuo: tamaño de lote, gestión de WIP, definición de terminado, ownership, y cultura de aprendizaje.
 
 #### 10 - Capabilities, adopción y roadmap
-Cerramos uniendo piezas que suelen quedar sueltas: **feature flags**, estrategias de branching (trunk-based vs variantes), **semantic versioning**, versionado de APIs, y **migraciones** seguras. También armamos un mapa de adopción realista: por dónde empezar en una organización, qué anti-patrones evitar (gates burocráticos, pipelines lentos, “CI siempre rojo”), y cómo sostener una mejora continua usando métricas. Esta clase funciona como síntesis: del concepto al plan aplicable.
+ También armamos un mapa de adopción realista: por dónde empezar en una organización, qué anti-patrones evitar (gates burocráticos, pipelines lentos, “CI siempre rojo”), y cómo sostener una mejora continua usando métricas. Esta clase funciona como síntesis: del concepto al plan aplicable.
