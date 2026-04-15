@@ -1196,7 +1196,9 @@ Se debe promover una estrategia donde haya:
 Si la aplicación se comunica con diversos sistemas externos mediante una serie de protocolos diferentes, o si consta de varios módulos débilmente acoplados con interacciones complejas entre ellos, entonces las pruebas de integración se vuelven cruciales.
 Son las pruebas que garantizan que cada parte independiente de su aplicación funcione correctamente con los servicios de los que depende.
 
-Las pruebas de integración buscan verificar que nuestro código funcione correctamente cuando interactúa con otras partes reales del sistema.
+>El objetivo de las pruebas de integración, como su nombre indica, es comprobar si varios módulos desarrollados por separado funcionan correctamente en conjunto. Estas pruebas se realizaron activando varios módulos y ejecutando pruebas de alto nivel en todos ellos para asegurar su correcto funcionamiento. Dichos módulos podían formar parte de un mismo ejecutable o ser independientes.
+>
+> [Martin Fowler](https://martinfowler.com/bliki/IntegrationTest.html)
 
 ```text
                  Flujo real                         Flujo de prueba
