@@ -2206,7 +2206,7 @@ Ejemplos de verificaciones:
 
 ##### 4. Gestionar secretos de forma separada
 
-Las contraseñas y la información sensible no deberían almacenarse en texto plano en el sistema de control de versiones, deben gestionarse de forma separada del resto de la configuración. Humble y Farley recomiendan que las credenciales sean provistas por el equipo de operaciones o administración y que el acceso a ellas esté restringido.
+Las contraseñas y la información sensible no deberían almacenarse en texto plano en el sistema de control de versiones, deben gestionarse de forma separada del resto de la configuración. Se recomienda que las credenciales sean provistas por el equipo de operaciones o administración y que el acceso a ellas esté restringido.
 
 La separación de secretos no contradice el principio de versionar la configuración. Lo que se versiona es la estructura y los valores no sensibles. Los secretos se referencian pero no se almacenan en el repo.
 
@@ -2273,7 +2273,7 @@ La relación entre configuración y pipeline se resume así:
 
 #### Gestión conjunta: esquema + configuración + código
 
-El punto central de esta sesión es que estos tres elementos deben avanzar juntos y de forma coordinada a través del pipeline:
+El objetivo es que estos tres elementos deben avanzar juntos y de forma coordinada a través del pipeline:
 
 | Elemento | Qué se versiona | Cómo se verifica | Cómo se promueve |
 |----------|-----------------|-------------------|-------------------|
@@ -2282,6 +2282,20 @@ El punto central de esta sesión es que estos tres elementos deben avanzar junto
 | Configuración | Archivos de configuración versionados + vault para secretos | Smoke tests, validación de esquema de config, drift detection | Inyección por entorno al momento del deploy |
 
 Cuando alguno de estos tres elementos queda fuera del pipeline, se introduce un punto ciego. Y los puntos ciegos tienden a manifestarse en el peor momento: durante un despliegue a producción, bajo presión, cuando menos capacidad de diagnóstico hay.
+
+###### Ejemplo de verificación del elemento Código
+- [Repositorio](https://github.com/emigallo-edu/liga-libre/blob/main/Tests/Test.Acceptance/CreateTournamentAcceptanceTest.cs)
+- [commit-stage](https://github.com/emigallo-edu/liga-libre/actions/runs/24457505543)
+
+
+###### Ejemplo de verificación del elemento Esquema de BD
+- [Repositorio](https://github.com/emigallo-edu/liga-libre/blob/main/Api/Controllers/DeploymentController.cs)
+- [Pipeline](https://github.com/emigallo-edu/liga-libre/blob/main/.github/workflows/acceptance-test.yml)
+- [acceptance-tests](https://github.com/emigallo-edu/liga-libre/actions/runs/24459880428/job/71471724426)
+
+###### Ejemplo de verificación del elemento Configuración
+- [Repositorio](https://github.com/emigallo-edu/liga-libre/blob/main/Tests/Test.Smoke/ApiSmokeTest.cs)
+- [acceptance-tests](https://github.com/emigallo-edu/liga-libre/actions/runs/24459880428/job/71471724426)
 
 #### Verificaciones recomendadas
 
@@ -2309,6 +2323,184 @@ Cuando alguno de estos tres elementos queda fuera del pipeline, se introduce un 
 
 #### Síntesis
 
-La integración de cambios de esquema y configuración de entornos al pipeline de despliegue no es un tema accesorio o avanzado. Es una condición básica para que la entrega continua sea real y no nominal. Un equipo que versiona y valida su código pero gestiona su base de datos y sus entornos de forma manual tiene un pipeline incompleto, con puntos ciegos que se manifiestan como fallas en producción, despliegues que "solo funcionan si Juan lo hace" y rollbacks imposibles.
+La integración de cambios de esquema y configuración de entornos al pipeline de despliegue no es un tema accesorio o avanzado. Es una condición básica para que la entrega continua sea real y no nominal. Un equipo que versiona y valida su código pero gestiona su base de datos y sus entornos de forma manual tiene un pipeline incompleto, con puntos ciegos que se manifiestan como fallas en producción.
 
 La capacidad de delivery depende también de configuración, infraestructura, scripts de despliegue y base de datos. Si el pipeline no incluye base de datos y configuración, no es un pipeline de despliegue: es un pipeline de compilación con pasos extra.
+
+## Feature flags
+
+#### Desacoplar deploy de release
+
+Una de las ideas centrales del libro de Humble y Farley es que *deploy* y *release* son dos actos distintos:.
+
+- **Deploy**: poner una versión del software en un entorno (incluyendo producción). Es una operación técnica.
+- **Release**: exponer una funcionalidad a los usuarios. Es una decisión de negocio.
+
+Cuando estos dos actos están acoplados, desplegar implica necesariamente que lo nuevo se vuelve visible, y por lo tanto cada despliegue carga con el riesgo de exponer cambios no probados contra usuarios reales. El equipo, para protegerse, tiende a desplegar menos seguido, acumular cambios y volver cada release un evento excepcional. El acoplamiento entre deploy y release es una de las fuerzas que más empuja a los equipos fuera de la entrega continua.
+
+La estrategia que propone *Continuous Delivery* es invertir esta relación: que desplegar sea barato y frecuente, pero que la activación de cada funcionalidad sea una decisión separada, controlada, reversible y, en lo posible, granular.
+
+#### Panorama de estrategias de release
+
+El capítulo del libro dedicado a despliegue y release describe varias estrategias complementarias, no excluyentes:
+
+| Estrategia | Qué hace | Cuándo aplica |
+|------------|----------|---------------|
+| Blue-green deployment | Mantener dos entornos productivos y rutear el tráfico al nuevo cuando está listo | Cuando se necesita rollback inmediato a nivel de infraestructura |
+| Canary release | Exponer la nueva versión a un subconjunto pequeño de usuarios antes de ampliar | Cuando se quiere observar el comportamiento real con bajo blast radius |
+| Dark launching | Desplegar código nuevo que se ejecuta en paralelo al viejo sin ser visible | Cuando se quiere validar performance o corrección contra tráfico real |
+| Feature toggles / flags | Incluir código en el artefacto pero activarlo selectivamente por configuración | Cuando se quiere desacoplar el deploy del release a nivel de funcionalidad |
+
+Esta sesión se enfoca en la última, por ser la que más directamente habilita trabajar en trunk con integración frecuente sin exponer trabajo en progreso.
+
+#### Feature flags: definición y rol
+
+Un *feature flag* (o *feature toggle*) es un mecanismo de configuración que permite activar o desactivar un fragmento de funcionalidad sin modificar ni redesplegar el código. El código de la funcionalidad vive en el artefacto desplegado, pero su ejecución queda condicionada a un valor de configuración que se puede cambiar en caliente o por entorno.
+
+```csharp
+if (features.IsEnabled("new-checkout-flow", user))
+{
+    return nuevoCheckout.Process(order);
+}
+return checkoutLegacy.Process(order);
+```
+
+La estructura es trivial. Lo relevante no es el `if`, sino lo que permite:
+
+- integrar código incompleto en la rama principal sin exponerlo;
+- desplegar varias veces al día aunque una funcionalidad no esté terminada;
+- activar una funcionalidad para un subconjunto de usuarios;
+- apagar una funcionalidad en producción sin necesidad de redesplegar;
+- realizar experimentos controlados (A/B testing);
+- y separar la decisión técnica de desplegar de la decisión de negocio de liberar.
+
+#### Trunk-based development y feature flags
+
+Humble y Farley defienden explícitamente el trabajo sobre la rama principal (trunk-based development) frente al uso de ramas de funcionalidad de larga duración. Las ramas largas acumulan divergencia, retrasan la integración, demoran el feedback y convierten cada merge en un evento arriesgado.
+
+La pregunta es: si una funcionalidad está a medio hacer, ¿cómo evitar que su código incompleto se active en producción? La respuesta propuesta por el libro combina dos mecanismos:
+
+- **branch by abstraction** para cambios estructurales que se construyen en fases coexistiendo con el código viejo;
+- **feature toggles** para cambios funcionales que ya están en el artefacto pero no deben ser visibles todavía.
+
+Ambas técnicas apuntan al mismo objetivo: mantener el sistema siempre desplegable mientras se construyen cambios grandes, sin aislarlos en ramas.
+
+```text
+Ramas largas:                   Trunk + flags:
+
+ main ──●──────────────●──►      main ──●──●──●──●──●──●──●──►
+         \            /                  (cada commit desplegable,
+          feature ───●                    funcionalidad apagada hasta
+          (1-4 semanas)                   que esté lista)
+          merge doloroso
+```
+
+#### Tipos de feature flags
+
+No todos los flags cumplen el mismo propósito. Una categorización útil, popularizada por Pete Hodgson en [Feature Toggles (aka Feature Flags)](https://martinfowler.com/articles/feature-toggles.html), distingue cuatro tipos según su duración y dinamismo:
+
+| Tipo | Propósito | Duración esperada | Dinamismo |
+|------|-----------|-------------------|-----------|
+| Release toggle | Ocultar funcionalidad en progreso hasta que esté lista | Corta (días o semanas) | Estático por deploy o config |
+| Experiment toggle | Dividir tráfico para A/B testing | Media (semanas) | Dinámico por usuario |
+| Ops toggle | Apagar o degradar funcionalidad en incidentes | Larga (permanente) | Dinámico, rápido |
+| Permission toggle | Habilitar funcionalidad para ciertos usuarios o planes | Muy larga (permanente) | Dinámico por usuario |
+
+La distinción importa porque el costo de mantenimiento, la granularidad de control y el mecanismo de decisión cambian según el tipo. Un release toggle que queda activo dos años en el código no es un release toggle: es deuda técnica disfrazada.
+
+#### Ciclo de vida de un feature flag
+
+Un flag de release tiene un ciclo de vida corto y deliberado:
+
+```text
+1. Introducción    │ se agrega el flag apagado; el código nuevo convive con el viejo
+2. Desarrollo      │ se integra código detrás del flag en cada commit
+3. Validación      │ se activa en entornos internos, luego canary o staff
+4. Rollout         │ se amplía gradualmente a porcentajes crecientes de usuarios
+5. Estabilización  │ el flag queda activo al 100%
+6. Limpieza        │ se elimina el flag y el código del camino viejo
+```
+
+El paso que más se descuida es el 6. Un flag olvidado significa:
+- dos caminos de código que el equipo cree que están "por las dudas" pero que nadie prueba;
+- complejidad acumulada en la lógica condicional;
+- pérdida de confianza en qué hace realmente el sistema en producción.
+
+La limpieza no es una tarea opcional posterior: es parte del trabajo de entregar la funcionalidad. Un flag sin fecha tentativa de retiro probablemente no debería haberse introducido como release toggle.
+
+#### Implementación: lo mínimo y lo deseable
+
+##### Lo mínimo
+
+Un flag puede implementarse con una variable de configuración leída al inicio:
+
+```csharp
+public class FeatureFlags
+{
+    public bool NewCheckoutFlow { get; init; }
+}
+
+// Uso
+if (flags.NewCheckoutFlow) { ... } else { ... }
+```
+
+Esto alcanza para un release toggle simple, estático por entorno, que se activa al cambiar la configuración y redesplegar (o recargar).
+
+##### Lo deseable
+
+A medida que los flags cumplen roles más dinámicos (canary, A/B, kill switch operativo), la implementación requiere:
+
+- evaluación en tiempo real, sin redeploy;
+- decisión dependiente de contexto (usuario, tenant, región, porcentaje);
+- auditoría de quién cambió qué flag y cuándo;
+- visibilidad de qué flags están activos en cada entorno;
+- integración con observabilidad para correlacionar métricas con el estado del flag.
+
+Existen servicios especializados y también soluciones construidas sobre almacenes de configuración ya existentes. La decisión entre construir o adoptar depende del volumen de flags, la granularidad deseada y el costo operativo que el equipo esté dispuesto a asumir.
+
+#### Feature flags y testing
+
+Los flags introducen una tensión con la estrategia de pruebas. Cada flag agrega una dimensión de combinación:
+
+```text
+2 flags independientes → 4 combinaciones posibles
+3 flags                → 8
+5 flags                → 32
+10 flags               → 1024
+```
+
+Probar el producto cartesiano completo es inviable y, además, innecesario. La práctica razonable es:
+
+- probar la combinación con todos los flags en su estado por defecto (lo que está en producción hoy);
+- probar la combinación con todos los flags nuevos activados (el estado futuro cuando se complete el rollout);
+- probar individualmente cada flag nuevo activado, con el resto en su estado por defecto;
+- y no preocuparse por combinaciones de flags que son funcionalmente independientes entre sí.
+
+Cuando dos flags sí interactúan, esa interacción es una señal de acoplamiento que conviene tratar como parte del diseño, no como un caso de prueba más.
+
+#### Observabilidad y feature flags
+
+Un flag que no puede observarse no sirve como mecanismo de control operativo. Para que un flag funcione como kill switch o como herramienta de rollout, el equipo necesita poder responder, en tiempo real:
+
+- ¿qué flags están activos en producción, con qué valor y para qué segmento de usuarios?
+- ¿qué error rate, latencia o conversión tiene el camino con el flag activo vs el camino sin él?
+- ¿cuándo y quién cambió el flag por última vez?
+
+Sin estas tres capacidades, apagar un flag ante un incidente se vuelve un acto de fe.
+
+#### Anti-patrones frecuentes
+
+- **Flags permanentes que nacieron como temporales**: un release toggle que lleva dos años en el código ya no es un toggle, es un `if` estructural que nadie revisa.
+- **Proliferación sin inventario**: el equipo no sabe cuántos flags existen, cuáles están activos, quién los creó ni cuándo deberían retirarse.
+- **Flags anidados**: condicionales dependientes de combinaciones de flags. La complejidad crece exponencialmente y nadie puede razonar sobre el estado real del sistema.
+- **Flag como sustituto de diseño**: usar flags para mantener vivas dos variantes de la misma funcionalidad durante meses en lugar de tomar una decisión de producto.
+- **Sin auditoría ni observabilidad**: cambiar flags en producción sin log de quién lo hizo ni visibilidad de sus efectos.
+- **Probar solo la rama activa**: asumir que el camino con el flag apagado "es el viejo y ya funcionaba". Si no se prueba, silenciosamente deja de funcionar.
+- **Flags en el repositorio como la única fuente**: si cambiar un flag requiere un deploy, se pierde la ventaja principal de desacoplar release de deploy.
+- **Acoplar flags a usuarios específicos en el código**: hardcodear que "el usuario X ve la funcionalidad Y" en lugar de modelar segmentación.
+
+#### Síntesis
+
+Los feature flags no son una herramienta aislada: son el mecanismo operativo que hace posible mantener la rama principal siempre desplegable sin que eso obligue a exponer cada cambio al usuario final. Son, junto con branch by abstraction y la separación entre deploy y release, una de las condiciones prácticas para que la entrega continua funcione en sistemas no triviales.
+
+Mal usados, se transforman en deuda estructural: bifurcaciones permanentes en el código, combinaciones que nadie entiende y decisiones ocultas detrás de configuración dispersa. Bien usados, convierten el release en una perilla que el equipo puede girar gradualmente, observar y revertir, en lugar de un interruptor binario que se acciona rezando.
