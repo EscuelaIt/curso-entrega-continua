@@ -2342,8 +2342,6 @@ La estrategia que propone *Continuous Delivery* es invertir esta relación: que 
 
 #### Panorama de estrategias de release
 
-El capítulo del libro dedicado a despliegue y release describe varias estrategias complementarias, no excluyentes:
-
 | Estrategia | Qué hace | Cuándo aplica |
 |------------|----------|---------------|
 | Blue-green deployment | Mantener dos entornos productivos y rutear el tráfico al nuevo cuando está listo | Cuando se necesita rollback inmediato a nivel de infraestructura |
@@ -2504,3 +2502,122 @@ Sin estas tres capacidades, apagar un flag ante un incidente se vuelve un acto d
 Los feature flags no son una herramienta aislada: son el mecanismo operativo que hace posible mantener la rama principal siempre desplegable sin que eso obligue a exponer cada cambio al usuario final. Son, junto con branch by abstraction y la separación entre deploy y release, una de las condiciones prácticas para que la entrega continua funcione en sistemas no triviales.
 
 Mal usados, se transforman en deuda estructural: bifurcaciones permanentes en el código, combinaciones que nadie entiende y decisiones ocultas detrás de configuración dispersa. Bien usados, convierten el release en una perilla que el equipo puede girar gradualmente, observar y revertir, en lugar de un interruptor binario que se acciona rezando.
+
+## Infraestructura como código
+
+La infraestructura sobre la que corre un sistema es tan parte del sistema entregable como el código fuente, y por lo tanto debe gestionarse con los mismos criterios: estar bajo control de versiones, ser reproducible desde sus definiciones y formar parte del pipeline.
+
+La idea de tratar la infraestructura como código (IaC) extiende a servidores, redes, almacenamiento, DNS, balanceadores, reglas de firewall y cualquier otro recurso operativo el principio que ya habíamos aplicado al código, al esquema de base de datos y a la configuración de entornos: si no está versionado, no es reproducible; si no es reproducible, no es confiable.
+
+#### El problema que resuelve
+
+Cuando la infraestructura se construye y modifica manualmente, cada entorno tiende a divergir. Los servidores acumulan ajustes puntuales —un parche aplicado en una madrugada, un paquete instalado a mano, un permiso modificado para resolver un incidente— que nadie documenta y que, con el tiempo, nadie recuerda.
+
+Humble y Farley describen este estado como *entornos snowflake*: configuraciones únicas, irreproducibles y frágiles. El síntoma clásico es la frase "en el entorno X funciona, en el Y no", sin que haya forma clara de comparar ambos. Cuando un servidor se cae o debe reemplazarse, la organización descubre que no puede reconstruirlo porque su estado actual es el resultado de años de intervenciones manuales no registradas.
+
+Los problemas operativos derivados son concretos:
+
+- imposibilidad de recrear producción en un entorno de pruebas;
+- incidentes que no pueden reproducirse fuera de producción;
+- tiempos de recuperación altos ante la pérdida de un nodo;
+- cambios de infraestructura que no pueden revisarse ni auditarse;
+- dependencia de personas específicas que "saben cómo está armado".
+
+#### Definición
+
+Infraestructura como código significa tratar la definición de la infraestructura —máquinas, redes, configuraciones de sistema operativo, dependencias de plataforma— como artefactos de software: escritos en archivos de texto, versionados en un repositorio, revisados mediante el mismo proceso que el código de la aplicación y aplicados a los entornos mediante procesos automatizados.
+
+La distinción clave no es qué herramienta se usa, sino qué propiedades cumple el proceso:
+
+- **declarativo sobre imperativo**: describir el estado deseado del entorno, no la secuencia de comandos que lo construye;
+- **idempotente**: aplicar la misma definición varias veces debe converger siempre al mismo estado;
+- **reproducible**: desde las definiciones versionadas, cualquier persona autorizada debe poder recrear el entorno completo;
+- **auditable**: todo cambio queda registrado en el historial del repositorio, con autor, momento y motivo.
+
+#### Principios para gestionar infraestructura como código
+
+##### 1. Versionar las definiciones de infraestructura
+
+Todo archivo que describa la infraestructura —manifiestos, playbooks, templates, scripts de provisioning— debe vivir en control de versiones. Esto incluye definiciones de servidores, redes, reglas de acceso, configuración de servicios gestionados y dependencias del sistema operativo.
+
+El criterio es el mismo que aplica a la configuración: si no está en el repositorio, no es reproducible, y si no es reproducible, no puede formar parte de la cadena de confianza del pipeline.
+
+##### 2. Automatizar el aprovisionamiento
+
+La creación de un entorno debe ser un proceso automatizado que parta de un estado conocido —una imagen base, un sistema operativo recién instalado— y aplique las definiciones versionadas hasta alcanzar el estado deseado.
+
+El aprovisionamiento manual no es un paso previo legítimo a la automatización: es una fuente de divergencia. Cada intervención manual sobre un entorno automatizado introduce una diferencia entre la definición declarada y el estado efectivo del sistema.
+
+##### 3. Tratar los servidores como ganado, no como mascotas
+
+Esta formulación, atribuida a Bill Baker y popularizada en la comunidad de DevOps, captura un cambio de postura: los servidores no son entidades individuales a las que se cuida, nombra y repara; son instancias intercambiables que se destruyen y recrean según haga falta.
+
+Un servidor que falla no se diagnostica *in situ*: se reemplaza por otro construido desde la misma definición. Este enfoque solo es viable cuando la definición del entorno es completa y el proceso de aprovisionamiento, confiable.
+
+##### 4. Probar los cambios de infraestructura
+
+Los cambios de infraestructura deben validarse antes de aplicarse a producción, igual que los cambios de código. Esto incluye:
+
+- aplicar la definición a un entorno aislado y verificar que el resultado es el esperado;
+- ejecutar pruebas de humo sobre el entorno recién provisionado (servicios accesibles, puertos correctos, permisos efectivos);
+- correr las pruebas de aceptación de la aplicación sobre el entorno provisionado, para detectar incompatibilidades entre cambios de infraestructura y comportamiento esperado del sistema.
+
+##### 5. Integrar la infraestructura al pipeline
+
+Un cambio en la definición de infraestructura debe pasar por el mismo pipeline que un cambio de código: disparar una build, ejecutar validaciones, promoverse entre etapas y aplicarse a producción con trazabilidad.
+
+Esto implica que el pipeline no solo compila y despliega la aplicación: también reconstruye o actualiza los entornos donde la aplicación corre.
+
+##### 6. Separar provisioning, configuración y despliegue
+
+Conviene distinguir tres capas, aunque en la práctica muchas herramientas cubran varias:
+
+- **provisioning**: creación de los recursos (máquinas virtuales, redes, volúmenes);
+- **configuración**: instalación de dependencias, ajuste del sistema operativo, configuración de servicios base;
+- **despliegue**: colocación del artefacto de la aplicación sobre la infraestructura ya preparada.
+
+#### Relación con el pipeline de despliegue
+
+Cuando la infraestructura se gestiona como código, el pipeline pasa a tener una dimensión adicional: además de construir el artefacto de la aplicación y promoverlo entre entornos, valida y aplica los cambios de infraestructura.
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                       Repositorio                            │
+│                                                              │
+│  código  +  migraciones  +  configuración  +  IaC            │
+└───────────────────────────────┬──────────────────────────────┘
+                                │
+                                ▼
+                   ┌────────────────────────┐
+                   │     Commit stage       │
+                   │  build + tests         │
+                   │  validar IaC (lint)    │
+                   └───────────┬────────────┘
+                               │
+                ┌──────────────┼──────────────┐
+                ▼              ▼              ▼
+        ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+        │   Staging   │ │     UAT     │ │  Producción │
+        │             │ │             │ │             │
+        │ apply IaC   │ │ apply IaC   │ │ apply IaC   │
+        │ + deploy    │ │ + deploy    │ │ + deploy    │
+        │ + smoke     │ │ + smoke     │ │ + smoke     │
+        └─────────────┘ └─────────────┘ └─────────────┘
+
+        mismas definiciones → mismo proceso → entornos equivalentes
+```
+
+La diferencia entre entornos deja de ser una característica estructural —cada entorno es distinto— y pasa a ser paramétrica: los entornos ejecutan las mismas definiciones con valores específicos (tamaño de máquinas, cantidad de réplicas, endpoints). Esto acerca staging y producción al punto en que un problema reproducible en staging es, con alta probabilidad, un problema real.
+
+#### Anti-patrones frecuentes
+
+- **Scripts de provisioning sin versionar**: archivos que viven en el escritorio de alguien, en un wiki o en una carpeta compartida. Cumplen la forma de IaC pero no la función: no son reproducibles ni auditables.
+- **IaC aplicada solo la primera vez**: la infraestructura se construye con la definición, pero los cambios posteriores se hacen a mano. La definición deja de reflejar el estado real y, con el tiempo, se vuelve inutilizable.
+- **Cambios manuales "de emergencia"**: modificar un entorno sin actualizar las definiciones rompe la cadena de confianza. Si la emergencia justifica la intervención, la definición debe actualizarse antes de cerrar el incidente.
+- **Definiciones distintas por entorno**: mantener archivos separados y divergentes para staging y producción reintroduce el problema que IaC viene a resolver.
+- **Probar la IaC solo en producción**: aplicar cambios de infraestructura por primera vez al entorno productivo repite el patrón que ya vimos con migraciones de base de datos y con configuración.
+- **Mezclar secretos en las definiciones de infraestructura**: los secretos deben inyectarse desde un mecanismo separado, igual que en la configuración de la aplicación.
+
+#### Síntesis
+
+Tratar la infraestructura como código no es una modernización estética ni una cuestión de herramientas. Es una consecuencia directa del principio general de entrega continua: todo lo que condiciona el comportamiento del sistema en producción debe estar versionado, ser reproducible y formar parte del pipeline. Código, esquema, configuración e infraestructura comparten la misma cadena de confianza; si cualquiera de ellos queda fuera, el pipeline tiene un punto ciego, y los puntos ciegos aparecen como incidentes cuando la reproducibilidad más hace falta.
