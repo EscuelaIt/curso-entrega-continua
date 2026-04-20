@@ -2621,3 +2621,184 @@ La diferencia entre entornos deja de ser una característica estructural —cada
 #### Síntesis
 
 Tratar la infraestructura como código no es una modernización estética ni una cuestión de herramientas. Es una consecuencia directa del principio general de entrega continua: todo lo que condiciona el comportamiento del sistema en producción debe estar versionado, ser reproducible y formar parte del pipeline. Código, esquema, configuración e infraestructura comparten la misma cadena de confianza; si cualquiera de ellos queda fuera, el pipeline tiene un punto ciego, y los puntos ciegos aparecen como incidentes cuando la reproducibilidad más hace falta.
+
+--------
+
+# Prácticas y marcos que complementan la entrega continua
+
+Hasta acá vimos a la entrega continua como una capacidad técnica: pipelines, pruebas automatizadas, versionado, feature flags, infraestructura como código. Todo eso es condición necesaria, pero no suficiente. CD se sostiene solo en organizaciones que la soporten: en cómo trabajan los equipos, cómo definen el trabajo terminado, cómo responden a los incidentes y cómo distribuyen la responsabilidad sobre el sistema en producción.
+
+Esta sesión no es un repaso de metodologías. Es un **pantallazo**: de dónde vienen las prácticas que usamos, qué enfoques las empujaron y qué variables organizacionales determinan si una organización puede sostener CD o lo bloquea, independientemente de qué herramientas tenga.
+
+### De dónde vienen las prácticas
+
+Las prácticas técnicas y organizacionales que hoy agrupamos bajo *Entrega Continua* no aparecieron juntas ni al mismo tiempo:
+
+| Año | Hito | Aporte a Entrega Continua |
+|-----|------|-------------|
+| 1999 | *Extreme Programming Explained* (Kent Beck) | CI, TDD, refactoring, small releases, simple design |
+| 2001 | Manifiesto Agile | Iteración corta, entrega incremental, feedback temprano |
+| 2003 | *Lean Software Development* | Flujo, tamaño de lote, eliminar desperdicio |
+| 2009 | Primer DevOpsDays  | Colaboración dev/ops como enfoque socio-técnico |
+| 2010 | *Continuous Delivery* (Humble & Farley) | Pipeline de despliegue como práctica sistematizada |
+| 2018 | *Accelerate* (Forsgren, Humble, Kim) | Evidencia empírica de qué prácticas correlacionan con alto desempeño |
+
+La estrategea de Entrega Continua es el punto donde muchas de estas líneas convergen. Reconocer sus orígenes ayuda a entender por qué una práctica existe y qué problema venía a resolver.
+
+#### XP: origen de muchas prácticas técnicas
+
+*Extreme Programming* (Kent Beck, 1999) es donde se sistematizaron muchas de las prácticas técnicas que hoy damos por sentadas:
+
+- **Continuous Integration**;
+- **Test-Driven Development**;
+- **Refactoring**;
+- **Small Releases**;
+- **Pair Programming** y **Collective Code Ownership**;
+- **Simple Design**.
+
+Aporta el **nivel técnico**. Integrar frecuentemente, mantener la rama principal siempre desplegable y cambiar el código con confianza requieren prácticas como CI, TDD, refactoring y diseño simple. Sin esas prácticas, la integración frecuente se vuelve inviable: los cambios se acumulan porque cada integración duele.
+
+#### Agile: marco de gestión
+
+El Manifiesto Agile (2001) es un marco de **gestión**, no de prácticas técnicas. Aporta cuatro valores y doce principios orientados a iteración corta, entrega incremental y ajuste basado en lo aprendido. Scrum, Kanban y XP son marcos concretos que lo implementan.
+
+Aporta el nivel de **gestión del trabajo**: cómo se planifica, cómo se prioriza, cómo se divide el trabajo en incrementos entregables.
+
+Riesgo frecuente: *Agile "de ceremonias"* sin fundamentos técnicos. Hacer sprints, dailies y retrospectivas sin CI, sin pruebas automatizadas y sin refactoring produce el síntoma que Accelerate permite detectar — mayor frecuencia de entrega con peor estabilidad. Aceleración del desorden.
+
+#### DevOps: enfoque socio-técnico
+
+*DevOps* no es un rol, no es un equipo y no es una herramienta. Es un enfoque organizacional cuyo objetivo es **reducir la distancia entre quienes construyen el software y quienes lo operan**.
+
+La hipótesis de fondo: cuando desarrollo y operaciones son equipos separados con incentivos distintos, los cambios se "tiran por encima de la pared" y el acoplamiento entre build y run reaparece, documentación desactualizada y diagnóstico lento.
+
+DevOps aporta la condición organizacional: sin ownership compartido del sistema en producción, el pipeline más sofisticado termina entregando binarios a un equipo que no los entiende.
+
+### Técnias de construcción de software
+
+##### Test-Driven Development (TDD)
+
+El desarrollo guiado por pruebas (TDD) es una técnica para construir software que guía el desarrollo mediante la escritura de pruebas. Fue desarrollada por Kent Beck a finales de la década de 1990 como parte de *XP*. En esencia, seguimos tres pasos sencillos repetidamente:
+
+1. Escribe una prueba para la siguiente funcionalidad que quieras añadir.
+2. Escribe el código funcional hasta que la prueba sea exitosa.
+3. Refactoriza tanto el código nuevo como el antiguo para que esté bien estructurado.
+
+```text
+┌──────────┐   escribir una prueba que falla
+│   RED    │   (define un comportamiento aún no implementado)
+└────┬─────┘
+     ▼
+┌──────────┐   escribir el código mínimo que la hace pasar
+│  GREEN   │   (sin preocuparse por la forma todavía)
+└────┬─────┘
+     ▼
+┌──────────┐   mejorar el diseño sin cambiar el comportamiento
+│ REFACTOR │   (con la red de pruebas recién construida)
+└────┬─────┘
+     │
+     └──────► siguiente ciclo
+```
+
+Propiedades clave:
+
+- **Feedback de diseño**, no solo verificación. Una unidad difícil de testear es, casi siempre, una unidad mal diseñada (dependencias ocultas, responsabilidades mezcladas).
+- **Cobertura emergente**: la cobertura es un efecto colateral, no un objetivo.
+- **Foco unitario**: TDD vive típicamente en el nivel de pruebas unitarias o de componente pequeño.
+- **Habilita refactoring continuo**: sin la red que produce TDD, el refactoring se vuelve arriesgado y tiende a evitarse.
+
+Esta técnica es un habilitador técnico directo: mantener la rama principal siempre desplegable exige poder cambiar código con confianza, y esa confianza proviene mayoritariamente de pruebas unitarias rápidas escritas antes del código.
+
+[Canon TDD](https://tidyfirst.substack.com/p/canon-tdd)
+
+##### Behavior-Driven Development (BDD)
+
+Introducido por Dan North alrededor de 2006 como evolución pedagógica de TDD. BDD reorienta la pregunta *"¿qué prueba estoy escribiendo?"* hacia *"¿qué comportamiento del sistema quiero especificar?"*. La diferencia es sutil pero cambia el lenguaje de las pruebas y el público al que se dirigen.
+
+Estructura típica en formato **Given-When-Then**:
+
+```text
+Given  un cliente con un carrito de 3 productos
+When   aplica el cupón de 10% de descuento
+Then   el total refleja el descuento sobre el subtotal
+And    el cupón queda marcado como usado
+```
+
+Propiedades clave:
+
+- **Lenguaje orientado al negocio**: las pruebas pueden leerse por personas no técnicas (analistas, producto).
+- **Foco de aceptación**: BDD vive naturalmente en el nivel de pruebas de aceptación más que en el unitario.
+- **Especificación ejecutable**: el criterio de aceptación y la prueba son el mismo artefacto.
+- **Herramientas**: Cucumber, SpecFlow, Behave, entre otras, permiten escribir los escenarios en lenguaje cercano al natural (Gherkin) y ejecutarlos como pruebas.
+
+BDD conecta las pruebas de aceptación automatizadas con los criterios de aceptación del producto.
+Cuando las pruebas de aceptación se derivan directamente de los criterios acordados con negocio, la automatización deja de ser una actividad de QA y pasa a ser parte del contrato de "terminado".
+
+
+##### Diferencias y complementariedad
+
+| | TDD | BDD |
+|---|-----|-----|
+| Nivel típico | Unitario | Aceptación |
+| Público | Desarrollador | Desarrollador + negocio + QA |
+| Lenguaje | Técnico (assertions) | Natural (Given-When-Then) |
+| Pregunta que responde | ¿Cómo se comporta esta unidad? | ¿Qué hace el sistema ante este escenario? |
+| Ciclo | Segundos a minutos | Minutos a horas |
+| Aporte principal | Diseño y regresión | Alineación y especificación |
+
+No son excluyentes. Un equipo maduro usa ambos: BDD para capturar criterios de aceptación y validar que el sistema cumple con lo acordado, TDD para construir las unidades internas que hacen que esos escenarios pasen. En el pipeline, las pruebas nacidas de TDD pueblan el *commit stage* (rápidas, muchas), mientras que las nacidas de BDD pueblan el *acceptance stage* (menos, más costosas, alineadas con comportamiento de negocio).
+
+###### Relación con la entrega continua
+
+- **TDD** sostiene la integración frecuente: cambios pequeños, integrables y seguros porque cada unidad tiene su red.
+- **BDD** sostiene la definición de "terminado": un cambio no está listo hasta que los escenarios acordados con negocio pasan en verde.
+- Ambos acortan el ciclo de feedback, que es la variable central que CD optimiza.
+
+#### Variables organizacionales que habilitan o bloquean la Entrega Continua
+
+Estos conceptos atraviesan todos los enfoques anteriores. Son las variables reales que determinan si una capacidad técnica puede sostenerse en el tiempo.
+
+##### Tamaño de lote
+
+Ya vimos su rol técnico. Organizacionalmente, la pregunta es: ¿el proceso **permite** integrar cambios pequeños, o los agrupa forzosamente (release mensual, ventanas de cambio, gates de aprobación)? Un equipo puede querer entregar seguido, pero si la organización exige un comité de cambios cada dos semanas, el tamaño de lote está fijado desde afuera.
+
+##### Work In Progress (WIP)
+
+Cuánto trabajo se mantiene "en el aire" simultáneamente. WIP alto produce context switching, integración tardía y más conflictos de merge. Kanban formaliza esto con *WIP limits*. Para CD, el efecto es directo: más WIP → ramas más largas → integración más costosa.
+
+##### Definition of Done
+
+¿Qué significa "terminado"? ¿Mergeado a main? ¿Desplegado a staging? ¿En producción? ¿Con evidencia de uso? Una DoD que termina en "código mergeado" es incompatible con CD, porque deja fuera las etapas donde realmente se valida que el cambio funciona. Una DoD coherente con CD debería alcanzar al menos *desplegado a producción y observable*.
+
+##### Ownership
+
+¿Quién se hace cargo del sistema cuando falla a las 3 AM? *Accelerate* muestra correlación positiva entre equipos que son responsables tanto del desarrollo como de la operación de sus servicios ("you build it, you run it") y alto desempeño de delivery. El opuesto —separación estricta entre dev y ops, con handoffs formales— consistentemente correlaciona con bajo desempeño.
+
+##### Cultura de aprendizaje
+
+¿Los incidentes son **oportunidades de aprender** o **búsquedas de culpables**? Westrum, citado en *Accelerate*, distingue culturas patológicas, burocráticas y generativas según cómo circula la información y cómo se tratan las fallas. CD prospera en culturas generativas: postmortems sin culpa (*blameless postmortems*, popularizados por Google SRE y Etsy), experimentación permitida y fallas tratadas como señal, no como infracción.
+
+#### Señales de incompatibilidad entre organización y CD
+
+Síntomas frecuentes de organizaciones que bloquean la estrategía de Entrega Continua sin darse cuenta:
+
+- **Gates burocráticos que no agregan información** — aprobaciones formales que nadie usa para decidir.
+- **Separación estricta dev/ops con handoffs** — tickets de un equipo al otro, con plazos.
+- **Releases calendarizados** — fechas fijas independientes del estado del código.
+- **Métricas de actividad en lugar de flujo** — líneas de código, tickets cerrados, horas imputadas.
+- **QA como etapa manual obligatoria pre-release** — todo cambio espera a una campaña de pruebas manual.
+- **Incidentes tratados como fallas individuales** — se busca al responsable antes de entender el sistema.
+
+Cada uno es una variable organizacional. Si no cambia, son deshabilitadores sin importar qué pipeline se tenga.
+
+#### Síntesis
+
+*Entrega Continua* es una capacidad técnica que existe solo cuando la organización la soporta. Las herramientas y los pipelines son condiciones necesarias, no suficientes. Las condiciones suficientes son organizacionales: cómo se estructuran los equipos, cómo se define el trabajo terminado, cómo se responde a las fallas y cómo se distribuye la responsabilidad sobre la operación.
+
+XP aportó las prácticas técnicas, Agile el marco de gestión iterativa, Lean la mirada sobre flujo y tamaño de lote, DevOps la colaboración entre desarrollo y operaciones, *Continuous Delivery* la articulación concreta y *Accelerate* la evidencia empírica. CD es el output observable de una organización donde todas estas piezas se sostienen a la vez.
+
+###### Referencias
+
+- [Kent Beck, *Extreme Programming Explained*](https://martinfowler.com/books/pxp.html).
+- [Manifiesto para el Desarrollo Ágil de Software](https://agilemanifesto.org/), 2001.
+- [Martin Fowler, *Refactorging*](https://martinfowler.com/books/refactoring.html).
