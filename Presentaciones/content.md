@@ -1,8 +1,107 @@
 # Integración y entrega continua
 
+## Índice
+
+<!-- TOC depthFrom:1 depthTo:3 -->
+
+- [Integración y entrega continua](#integración-y-entrega-continua)
+  - [Estructura del curso](#estructura-del-curso)
+    - [Finalidad: ¿Para qué?](#finalidad-para-qué)
+    - [Fundamentos: ¿Por qué?](#fundamentos-por-qué)
+    - [Mecanismos: ¿Cómo?](#mecanismos-cómo)
+    - [Material](#material)
+    - [Conocimiento necesario](#conocimiento-necesario)
+- [Introducción](#introducción)
+    - [Objetivos de la práctica](#objetivos-de-la-práctica)
+    - [¿Qué problemas resuelve?](#qué-problemas-resuelve)
+    - [Diferencia entre Integración, Entrega y Despliegue Continuo](#diferencia-entre-integración-entrega-y-despliegue-continuo)
+    - [El pipeline de despliegue como sistema](#el-pipeline-de-despliegue-como-sistema)
+    - [Métricas de Accelerate](#métricas-de-accelerate)
+    - [Propiedades deseables](#propiedades-deseables)
+- [¿Cómo trabajar para integrar y entregar con frecuencia?](#cómo-trabajar-para-integrar-y-entregar-con-frecuencia)
+    - [Para ponernos en sintonía cuando hablamos de un correcto diseño](#para-ponernos-en-sintonía-cuando-hablamos-de-un-correcto-diseño)
+- [Desempeño en la entrega de software: el enfoque de Accelerate](#desempeño-en-la-entrega-de-software-el-enfoque-de-accelerate)
+    - [Antes de comenzar...](#antes-de-comenzar)
+    - [Presentación del trabajo de investigación](#presentación-del-trabajo-de-investigación)
+    - [Resumen general de Accelerate](#resumen-general-de-accelerate)
+    - [Las 4 métricas principales](#las-4-métricas-principales)
+    - [Método](#método)
+    - [Resultados](#resultados)
+    - [Qué dicen esas 4 métricas juntas](#qué-dicen-esas-4-métricas-juntas)
+- [La arquitectura como habilitador de la entrega continua](#la-arquitectura-como-habilitador-de-la-entrega-continua)
+    - [¿Qué es la arquitectura de un software?](#qué-es-la-arquitectura-de-un-software)
+    - [Según lo que vimos hasta ahora, un producto/proyecto/equipo que quiera implementar entrega continua tiene que tener estas características:](#según-lo-que-vimos-hasta-ahora-un-productoproyectoequipo-que-quiera-implementar-entrega-continua-tiene-que-tener-estas-características)
+    - [Atributos de calidad](#atributos-de-calidad)
+    - [Dimensiones de la arquitectura](#dimensiones-de-la-arquitectura)
+    - [Manejo de componentes y dependencias](#manejo-de-componentes-y-dependencias)
+    - [Programación Orientada a Aspectos](#programación-orientada-a-aspectos)
+    - [Cohesión de paquetes](#cohesión-de-paquetes)
+    - [Arquitectura Hexagonal](#arquitectura-hexagonal)
+    - [Motivación](#motivación)
+    - [Naturaleza de la solución](#naturaleza-de-la-solución)
+    - [Arquitectura Limpia](#arquitectura-limpia)
+- [Pruebas](#pruebas)
+    - [1. Business-Facing Tests That Support the Development Process](#1-business-facing-tests-that-support-the-development-process)
+    - [2. Technology-Facing Tests That Support the Development Process](#2-technology-facing-tests-that-support-the-development-process)
+    - [3. Business-Facing Tests That Critique the Project](#3-business-facing-tests-that-critique-the-project)
+    - [4. Technology-Facing Tests That Critique the Project](#4-technology-facing-tests-that-critique-the-project)
+    - [Cómo entender los 4 tipos en conjunto](#cómo-entender-los-4-tipos-en-conjunto)
+    - [Dobles de prueba](#dobles-de-prueba)
+    - [Pruebas según la madurez del proyecto](#pruebas-según-la-madurez-del-proyecto)
+    - [Principales pruebas automáticas](#principales-pruebas-automáticas)
+    - [Análisis estático y métricas relevantes](#análisis-estático-y-métricas-relevantes)
+- [Pipeline de despliegue](#pipeline-de-despliegue)
+    - [¿Qué problema resuelve?](#qué-problema-resuelve)
+    - [Definición](#definición)
+    - [Qué no es un deployment pipeline](#qué-no-es-un-deployment-pipeline)
+    - [Anatomía mínima del deployment pipeline](#anatomía-mínima-del-deployment-pipeline)
+    - [Prácticas fundamentales del deployment pipeline](#prácticas-fundamentales-del-deployment-pipeline)
+    - [Smoke tests y validación post-deploy](#smoke-tests-y-validación-post-deploy)
+    - [Anti-patrones frecuentes](#anti-patrones-frecuentes)
+- [Estrategias de release](#estrategias-de-release)
+  - [Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo](#integración-de-scripts-ddl-y-configuración-de-entornos-al-esquema-de-despliegue-continuo)
+    - [Breve introducción: DDL, DML y DCL](#breve-introducción-ddl-dml-y-dcl)
+    - [¿Por qué la base de datos suele quedar fuera del pipeline?](#por-qué-la-base-de-datos-suele-quedar-fuera-del-pipeline)
+    - [La base de datos como parte del sistema entregable](#la-base-de-datos-como-parte-del-sistema-entregable)
+    - [Principios para gestionar cambios de base de datos en entrega continua](#principios-para-gestionar-cambios-de-base-de-datos-en-entrega-continua)
+    - [Herramientas y mecanismos de migración](#herramientas-y-mecanismos-de-migración)
+    - [Anti-patrones en la gestión de cambios de base de datos](#anti-patrones-en-la-gestión-de-cambios-de-base-de-datos)
+  - [Configuración de entornos](#configuración-de-entornos)
+    - [El problema](#el-problema)
+    - [Principios para gestionar configuración de entornos](#principios-para-gestionar-configuración-de-entornos)
+    - [Configuración y el pipeline de despliegue](#configuración-y-el-pipeline-de-despliegue)
+    - [Gestión conjunta: esquema + configuración + código](#gestión-conjunta-esquema-configuración-código)
+    - [Verificaciones recomendadas](#verificaciones-recomendadas)
+    - [Anti-patrones frecuentes](#anti-patrones-frecuentes-1)
+    - [Síntesis](#síntesis)
+  - [Feature flags](#feature-flags)
+    - [Desacoplar deploy de release](#desacoplar-deploy-de-release)
+    - [Panorama de estrategias de release](#panorama-de-estrategias-de-release)
+    - [Feature flags: definición y rol](#feature-flags-definición-y-rol)
+    - [Trunk-based development y feature flags](#trunk-based-development-y-feature-flags)
+    - [Tipos de feature flags](#tipos-de-feature-flags)
+    - [Ciclo de vida de un feature flag](#ciclo-de-vida-de-un-feature-flag)
+    - [Implementación: lo mínimo y lo deseable](#implementación-lo-mínimo-y-lo-deseable)
+    - [Feature flags y testing](#feature-flags-y-testing)
+    - [Observabilidad y feature flags](#observabilidad-y-feature-flags)
+    - [Anti-patrones frecuentes](#anti-patrones-frecuentes-2)
+    - [Síntesis](#síntesis-1)
+  - [Infraestructura como código](#infraestructura-como-código)
+    - [El problema que resuelve](#el-problema-que-resuelve)
+    - [Definición](#definición-1)
+    - [Principios para gestionar infraestructura como código](#principios-para-gestionar-infraestructura-como-código)
+    - [Relación con el pipeline de despliegue](#relación-con-el-pipeline-de-despliegue)
+    - [Anti-patrones frecuentes](#anti-patrones-frecuentes-3)
+    - [Síntesis](#síntesis-2)
+- [Prácticas y marcos que complementan la entrega continua](#prácticas-y-marcos-que-complementan-la-entrega-continua)
+    - [De dónde vienen las prácticas](#de-dónde-vienen-las-prácticas)
+    - [Técnias de construcción de software](#técnias-de-construcción-de-software)
+
+<!-- /TOC -->
+
 ## Estructura del curso
 
-#### Finalidad: ¿Para qué?
+### Finalidad: ¿Para qué?
 
 - reducir el costo, el tiempo y el riesgo del cambio;
 - mantener el software en estado liberable;
@@ -20,7 +119,7 @@ La mejora del delivery solo es significativa si combina rapidez y estabilidad. L
 
 La entrega continua, entendida de este modo, no es un mecanismo accesorio del desarrollo, sino una condición para que el software pueda evolucionar sin que cada modificación amenace la estabilidad del sistema completo.
 
-#### Fundamentos: ¿Por qué?
+### Fundamentos: ¿Por qué?
 
 - la integración tardía incrementa el costo del error;
 - los lotes grandes acumulan incertidumbre;
@@ -42,7 +141,7 @@ El flujo de trabajo que favorece CI/CD es, en consecuencia, un flujo con cambios
 
 Los errores de integración, compatibilidad, comportamiento funcional o impacto no funcional suelen volverse más costosos cuanto más tarde se detectan. Por eso, la estrategia de entrega continua insiste en construir mecanismos automáticos de validación que permitan detectar rápidamente cuándo un cambio introduce una regresión, viola una restricción o reduce la capacidad operativa del sistema.
 
-#### Mecanismos: ¿Cómo?
+### Mecanismos: ¿Cómo?
 
 La integración y el despliegue continuo no se realizan mediante una única técnica ni por medio de una sola herramienta, sino a través de un conjunto articulado de prácticas, decisiones de arquitectura y mecanismos operativos. Estos mecanismos tienen como finalidad:
 - volver posible la integración frecuente,
@@ -63,14 +162,14 @@ Algunos ejemplos:
 - observabilidad y monitoreo;
 - métricas de desempeño de delivery.
 
-#### Material
+### Material
 
 - [Continuous Delivery](https://martinfowler.com/books/continuousDelivery.html)
 - [Accelerate](https://www.amazon.com/Accelerate-Software-Performing-Technology-Organizations/dp/1942788339)
 - [Proyecto Liga Libre](https://github.com/EscuelaIt/curso-entrega-continua-practica/tree/main)
 
 
-#### Conocimiento necesario
+### Conocimiento necesario
 
 - [Master - Diseño OO](https://escuela.it/cursos/curso-de-diseno-orientado-a-objetos/estudiar)
 - [Master - Arquitecturas](https://escuela.it/cursos/curso-arquitecturas-software-agiles-pesadas/estudiar)
@@ -80,7 +179,7 @@ Algunos ejemplos:
 
 # Introducción
 
-#### Objetivos de la práctica
+### Objetivos de la práctica
 
 >Nuestro objetivo es hacer que la entrega de software desde las manos de los desarrolladores hasta la producción sea un proceso confiable, predecible, visible y en gran medida automatizado con riesgos cuantificables y bien comprendidos.
 >
@@ -110,7 +209,7 @@ No significa que todo se publique automáticamente, sino que el equipo no quede 
 >
 >[Martin Fowler](https://martinfowler.com/bliki/ContinuousDelivery.html)
 
-#### ¿Qué problemas resuelve?
+### ¿Qué problemas resuelve?
 
 CI/CD existe para reducir el costo y el riesgo del cambio. No para “automatizar por automatizar”, no para verse modernos, y tampoco para desplegar más veces porque sí. El problema de fondo es que, cuando los cambios se acumulan durante mucho tiempo, se vuelven más difíciles de integrar, más difíciles de probar, más difíciles de explicar y más costosos de revertir.
 
@@ -121,7 +220,7 @@ Tres conceptos que van a atravesar todo el curso:
 
 La relación entre estos tres conceptos es directa. Cuanto más grande el lote, más tarde llega el feedback. Cuanto más tarde llega el feedback, más caro resulta entender qué pasó. Y cuanto más caro es entenderlo, mayor es el riesgo operativo y de negocio.
 
-#### Diferencia entre Integración, Entrega y Despliegue Continuo
+### Diferencia entre Integración, Entrega y Despliegue Continuo
 
 Integración continua es la práctica de integrar frecuentemente en una línea principal compartida, validando cada integración con build y pruebas automáticas. Su objetivo no es desplegar, sino evitar que la integración sea un evento tardío, traumático y costoso.
 
@@ -129,7 +228,7 @@ Entrega continua toma esa base y la extiende. No alcanza con integrar seguido: a
 
 Despliegue continuo, es un caso más extremo: todo cambio que pasa satisfactoriamente por el pipeline se despliega automáticamente a producción. Se puede efectuar Entrega Continua sin hacer Despliegue Continuo.
 
-#### El pipeline de despliegue como sistema
+### El pipeline de despliegue como sistema
 
 No es una cadena de tareas, sino la representación ejecutable del proceso de entrega. Cada etapa del pipeline responde una pregunta distinta sobre el cambio:
 
@@ -141,7 +240,7 @@ No es una cadena de tareas, sino la representación ejecutable del proceso de en
 
 Lo importante es que el pipeline cumple una doble función. Por un lado, da feedback técnico temprano. Por otro, hace visible y trazable el proceso de entrega. El pipeline, en ese sentido, no es solo automatización: es una forma de hacer explícito qué evidencia exigimos antes de confiar en un cambio. *Continuous Delivery* lo presenta como “Anatomy of the Deployment Pipeline”: como el mecanismo central que estructura la entrega de software.
 
-#### Métricas de Accelerate
+### Métricas de Accelerate
 
 Accelerate es un libro de síntesis y divulgación académicamente fundamentada que presenta resultados de investigación empírica sobre desempeño en entrega de software y sobre las capacidades técnicas y organizacionales asociadas a equipos de alto rendimiento.
 
@@ -149,22 +248,22 @@ Es un libro que busca responder, con base empírica, una pregunta central de la 
 
 Su tesis central es que el desempeño en la entrega de software sí puede medirse y que, además, se relaciona con el desempeño global de la organización. Para eso, los autores proponen un marco de medición hoy muy conocido: las cuatro métricas de delivery.
 
-###### 1. Deployment Frequency
+##### 1. Deployment Frequency
 Mide con qué frecuencia un equipo despliega cambios a producción.
 Alta frecuencia suele indicar capacidad de trabajar en cambios pequeños y liberarlos sin demasiado costo operativo.
 No mide valor de negocio por sí sola; mide capacidad de entrega.
 
-###### 2. Lead Time for Changes
+##### 2. Lead Time for Changes
 Mide cuánto tarda un cambio desde que se integra al sistema hasta que llega a producción.
 Captura la velocidad real del flujo de entrega.
 Obliga a mirar el proceso completo, no solo cuánto tarda “programar”.
 
-###### 3. Change Failure Rate
+##### 3. Change Failure Rate
 Mide qué proporción de los cambios desplegados en producción provoca fallas que requieren intervención, como rollback, hotfix o corrección urgente.
 Es una métrica de estabilidad.
 No pregunta cuántos bugs existen en abstracto, sino cuántos cambios generan problemas operativos reales.
 
-###### 4. Time to Restore Service (MTTR)
+##### 4. Time to Restore Service (MTTR)
 Mide cuánto tarda el equipo en restaurar el servicio cuando ocurre una falla o degradación.
 Refleja capacidad de recuperación.
 No depende solo de “arreglar rápido”, sino también de observabilidad, trazabilidad, tamaño de los cambios y mecanismos de rollback o forward-fix.
@@ -173,44 +272,44 @@ Desde el punto de vista conceptual, Accelerate puede leerse como una obra que tr
 
 Estas métricas nos obligan a mirar el delivery como un sistema y no como una suma de tareas aisladas. Dos miden velocidad, dos estabilidad. El objetivo no es elegir entre rapidez y confiabilidad, sino mejorar ambas en conjunto. Accelerate presenta precisamente esa combinación como núcleo de desempeño de delivery.
 
-#### Propiedades deseables
-###### 1. Mantener la aplicación siempre liberable
+### Propiedades deseables
+##### 1. Mantener la aplicación siempre liberable
 
 El software debe diseñarse y desarrollarse de modo tal que pueda liberarse a producción en cualquier momento. Eso obliga a pensar el diseño no solo en términos de funcionalidad, sino también de entregabilidad: cambios pequeños, integración frecuente, validación continua y ausencia de trabajo técnico pendiente para poder liberar.
 
-###### 2. Favorecer cambios pequeños e integración frecuente
+##### 2. Favorecer cambios pequeños e integración frecuente
 
 Los cambios grandes son más difíciles de entender, probar, integrar y revertir. Por eso, un principio de diseño clave es estructurar el sistema y el trabajo de forma que sea posible introducir incrementos pequeños, integrarlos rápidamente a la línea principal y obtener feedback temprano. Esto se relaciona directamente con que estrategía de **branching** vamos a trabajar y con evitar ramas largas como modo normal de trabajo.
 
-###### 3. Diseñar para testabilidad
+##### 3. Diseñar para testabilidad
 
 La testabilidad no aparece como una virtud secundaria, sino como una condición central de entregabilidad. Un sistema apto para *Entrega Continua* debe poder validarse rápida y repetidamente mediante pruebas automatizadas en distintos niveles. Eso implica favorecer diseños con responsabilidades claras, dependencias controladas, facilidad de aislamiento y comportamiento observable. Si un sistema es difícil de probar, también será difícil de integrar y de liberar con confianza.
 
-###### 4. Reducir acoplamiento y gestionar explícitamente dependencias
+##### 4. Reducir acoplamiento y gestionar explícitamente dependencias
 
 El acoplamiento excesivo vuelve cada cambio más costoso. Un principio fuerte, entonces, es diseñar sistemas donde las dependencias sean explícitas, trazables y manejables, evitando que un cambio aparentemente local obligue a coordinar múltiples partes del sistema al mismo tiempo. Esto aplica tanto a bibliotecas y componentes como a dependencias entre aplicaciones, servicios y bases de datos.
 
-###### 5. Separar deploy de release
+##### 5. Separar deploy de release
 
 Una aplicación bien diseñada para *Entrega Continua* debería permitir desplegar sin necesariamente exponer inmediatamente toda nueva funcionalidad. Esa separación entre movimiento técnico del software y decisión de negocio sobre su exposición reduce riesgo y facilita cambios más frecuentes. De ahí se desprenden después mecanismos como toggles o estrategias progresivas de release, pero el principio previo es de diseño: no obligar a que cada despliegue implique exposición inmediata e irreversible.
 
-###### 6. Diseñar para compatibilidad evolutiva
+##### 6. Diseñar para compatibilidad evolutiva
 
 Los sistemas que soportan *Entrega Continua* deben evolucionar de forma compatible, evitando cambios destructivos que exijan sincronización perfecta entre todos los componentes. Esto vale para APIs, contratos entre componentes y, de manera muy marcada, para esquemas de base de datos. El principio general es privilegiar cambios aditivos y reversibles frente a cambios abruptos y destructivos.
 
-###### 7. Tratar la configuración, la infraestructura y los datos como parte del sistema
+##### 7. Tratar la configuración, la infraestructura y los datos como parte del sistema
 
 La capacidad de delivery depende también de configuración, infraestructura, scripts de despliegue y base de datos. Por eso, un diseño compatible con *Entrega Continua* debe minimizar dependencias implícitas del entorno, externalizar adecuadamente configuración y hacer que los cambios en esos elementos sean versionables, repetibles y automatizables. En términos de diseño, esto significa evitar aplicaciones que “funcionan solo en un ambiente particular” o que dependen de intervención manual opaca para correr correctamente.
 
-###### 8. Construir binarios/artefactos verdaderamente desplegables
+##### 8. Construir binarios/artefactos verdaderamente desplegables
 
 El build debe producir artefactos que puedan copiarse a una máquina correctamente configurada y ejecutarse sin depender de la cadena de desarrollo. Traducido a principio de diseño: el sistema debe empaquetarse de manera que el artefacto producido sea autosuficiente en términos operativos razonables, portable entre ambientes y apto para promoción sin reconstrucciones ad hoc. Esto reduce variabilidad entre entornos y aumenta trazabilidad.
 
-###### 9. Hacer visible el comportamiento del sistema en operación
+##### 9. Hacer visible el comportamiento del sistema en operación
 
 Un diseño compatible con *Entrega Continua* es que la aplicación debe exponer suficientes señales para verificar si está viva, lista y funcionando razonablemente tras un despliegue. En términos modernos, esto implica diseñar pensando en health, readiness, logging y monitoreo, porque un sistema que no puede observarse tampoco puede recuperarse rápido cuando un cambio falla.
 
-###### 10. Automatizar lo repetible, pero sobre un proceso primero entendido
+##### 10. Automatizar lo repetible, pero sobre un proceso primero entendido
 
 Automatizar un proceso de entrega que antes fue comprendido, simplificado y modelado. Como principio de diseño organizacional y técnico, esto implica evitar pasos manuales opacos, dependencias tácitas y conocimiento tribal en el proceso de build, test y deploy. Un sistema bien diseñado para *Entrega Continua* presupone repetibilidad.
 
@@ -444,7 +543,7 @@ Intenta capturar la calidad operativa del cambio. Un equipo puede desplegar much
 
 Mide específicamente el porcentaje de cambios que terminan mal desde el punto de vista operativo. Por eso es una métrica de estabilidad de delivery, no una teoría total de la calidad del software. Esta distinción está implícita tanto en el libro como en el framing posterior de DORA.
 
-#### Método
+### Método
 
 El libro parte de esta lógica:
 
@@ -468,11 +567,11 @@ En Accelerate y en los reportes DORA, las categorías high, medium y low perform
 
 [DORA](https://dora.dev/)
 
-#### Resultados
+### Resultados
 
 Se aplicó análisis de cluster durante los cuatro años del proyecto de investigación y se encontró que, cada año, existían categorías significativamente diferentes de rendimiento en la entrega de software en la industria. También se encontraron que las cuatro medidas de rendimiento en la entrega de software son buenos clasificadores y que los grupos que se identificaron en el análisis (alto, medio y bajo rendimiento) presentaban diferencias significativas en las cuatro medidas.
 
-##### Resultados de entrega en 2016
+#### Resultados de entrega en 2016
 
 | Métrica | High Performers | Medium Performers | Low Performers |
 |-|-|-|-|
@@ -481,7 +580,7 @@ Se aplicó análisis de cluster durante los cuatro años del proyecto de investi
 | Time to Restore Service | Menos de una hora | Menos de un día | Menos de un día* |
 | Change Failure Rate | 0-15% | 31-45% | 16-30% |
 
-##### Resultados de entrega en 2017
+#### Resultados de entrega en 2017
 
 | Métrica | High Performers | Medium Performers | Low Performers |
 |-|-|-|-|
@@ -500,25 +599,25 @@ Se aplicó análisis de cluster durante los cuatro años del proyecto de investi
 >
 > Accelerate
 
-##### Evolución en los 4 años
+#### Evolución en los 4 años
 
 ![](lead-time-change-evolution.png)
 
-###### Tendencias interanuales: tiempo
+##### Tendencias interanuales: tiempo
 
 ![](deploy-frequency-evolution.png)
 
-###### Tendencias interanuales: tiempo
+##### Tendencias interanuales: tiempo
 
 ![](time-to-restore-evolution.png)
 
-###### Tendencias interanuales: estabilidad
+##### Tendencias interanuales: estabilidad
 
 ![](change-failure-rate-evolution.png)
 
-###### Tendencias interanuales: estabilidad
+##### Tendencias interanuales: estabilidad
 
-##### Conclusión de los autores
+#### Conclusión de los autores
 
 >Los lectores más observadores notarán que los empleados con un rendimiento medio obtuvieron peores resultados que los de bajo rendimiento en la tasa de fallos en los cambios durante 2016. Este año es el primero de nuestra investigación en el que observamos un rendimiento ligeramente inconsistente en todas nuestras métricas, tanto en los empleados con rendimiento medio como en los de bajo rendimiento. Nuestra investigación no lo explica de forma concluyente, pero tenemos algunas ideas sobre las posibles razones.
 >
@@ -528,7 +627,7 @@ Se aplicó análisis de cluster durante los cuatro años del proyecto de investi
 >
 > Accelerate
 
-#### Qué dicen esas 4 métricas juntas
+### Qué dicen esas 4 métricas juntas
 
 El libro no usa estas métricas de forma aislada. Las combina para mostrar dos dimensiones del desempeño:
 
@@ -574,7 +673,7 @@ Entre las más decisivas aparecen:
 - monitoreo
 - y cultura organizacional generativa.
 
-##### Conclusión personal
+#### Conclusión personal
 
 El rendimiento en entrega de software puede medirse objetivamente mediante cuatro métricas de resultado, y mejora de forma consistente cuando la organización desarrolla capacidades técnicas, arquitectónicas, de gestión y culturales alineadas con flujo rápido, lotes pequeños, calidad incorporada y aprendizaje continuo.
 No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfocarse en capacidades concretas y construir un sistema donde rapidez y estabilidad se refuercen mutuamente.
@@ -583,7 +682,7 @@ No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfoca
 
 # La arquitectura como habilitador de la entrega continua
 
-#### ¿Qué es la arquitectura de un software?
+### ¿Qué es la arquitectura de un software?
 
 >El objetivo de la arquitectura de software es minimizar los recursos humanos necesarios para construir y mantener el sistema requerido.
 >
@@ -601,16 +700,16 @@ No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfoca
 >
 >Grady Booch
 
-#### Según lo que vimos hasta ahora, un producto/proyecto/equipo que quiera implementar entrega continua tiene que tener estas características:
+### Según lo que vimos hasta ahora, un producto/proyecto/equipo que quiera implementar entrega continua tiene que tener estas características:
 
-###### Producto
+##### Producto
 
 - Estado siempre liberable.
 - Cambios pequeños y localizados.
 - Alta testabilidad: facilidad de aislamiento y comportamiento observable.
 - Bajo acoplamiento y buena cohesión.
 
-###### Proyecto
+##### Proyecto
 
 - Control de versiones y una línea principal integrada con frecuencia.
 - Pipeline de delivery visible y trazable.
@@ -618,14 +717,14 @@ No alcanza con “hacer Agile/DevOps”; hay que medir resultados reales, enfoca
 - Baja dependencia de pasos manuales.
 - Trabajo en lotes pequeños.
 
-###### Equipo
+##### Equipo
 
 - Equipo empoderado para integrar, desplegar y corregir sin depender de aprobaciones burocráticas.
 - Ownership claro sobre servicios, cambios e incidentes.
 - Disciplina para priorizar calidad interna, no solo velocidad aparente.
 - Feedback de cliente y de producción para ajustar el flujo.
 
-#### Atributos de calidad
+### Atributos de calidad
 
 Martin Fowler habla de 2 tipos de atributos de calidad del software:
 - externos (como la interfaz de usuario y los defectos)
@@ -642,7 +741,7 @@ El código desordenado aumenta el tiempo que lleva entender cómo realizar un ca
 
 Mis cambios también afectan al futuro. Puede que vea una forma rápida de implementar esta función, pero es un camino que va en contra de la estructura modular del programa y añade complejidad innecesaria. Si tomo ese camino, me resultará más fácil hoy, pero ralentizará a todos los demás que tengan que lidiar con este código en las próximas semanas y meses. Una vez que otros miembros del equipo tomen la misma decisión, una aplicación fácil de modificar puede acumular rápidamente código innecesario hasta el punto de que cualquier pequeño cambio requiera semanas de trabajo.
 
-##### Tiempo de desarrollo a lo largo del ciclo de vida del proyecto
+#### Tiempo de desarrollo a lo largo del ciclo de vida del proyecto
 
 Con una mala calidad interna el progreso es rápido al principio, pero con el tiempo se vuelve más difícil agregar nuevas funcionalidades. Incluso los cambios pequeños requieren que los programadores comprendan grandes áreas de código, un código que resulta difícil de entender. Cuando realizan cambios, se producen fallos inesperados, lo que conlleva largos tiempos de prueba y defectos que deben corregirse.
 
@@ -652,7 +751,7 @@ Con una mala calidad interna el progreso es rápido al principio, pero con el ti
 >
 >Martin Fowler
 
-##### El software de alta calidad es más barato de producir
+#### El software de alta calidad es más barato de producir
 
 Descuidar la calidad interna conlleva una rápida acumulación de residuos. Esta basura ralentiza el desarrollo de funciones.
 Incluso un gran equipo produce errores, pero al mantener una alta calidad interna, es capaz de mantenerlos bajo control.
@@ -662,7 +761,7 @@ Un alto nivel de calidad interna minimiza lo superfluo, lo que permite al equipo
 >
 >Martin Fowler
 
-#### Dimensiones de la arquitectura
+### Dimensiones de la arquitectura
 - **Capacidad de soportar cambios pequeños e integración frecuente:** un sistema apto para entrega continua debe permitir introducir modificaciones graduales, mantener compatibilidad transitoria y evitar que una sola variación obligue a una reestructuración simultánea de demasiadas partes del sistema.
 - **Testeabilidad:** una arquitectura adecuada para entrega continua es aquella que facilita aislamiento, control de dependencias y verificación automatizada temprana
 - **Gestión del acoplamiento y las dependencias:** la gobernabilidad del sistema depende de poder entender, versionar y coordinar sus dependencias sin convertir cada cambio local en una intervención global.
@@ -670,7 +769,7 @@ Un alto nivel de calidad interna minimiza lo superfluo, lo que permite al equipo
 - **Compatibilidad progresiva:** un sistema que exige cambios destructivos o sincronización perfecta entre todas sus partes se vuelve hostil a la entrega continua. Entroducir cambios de forma aditiva, tolerar estados de transición y desacoplar, en la medida de lo posible, el despliegue aplicativo de las transformaciones irreversibles de datos.
 - **Capacidad de observación operativa:** entrega continua requiere un sistema que pueda ser observado una vez desplegado. Para ello, el sistema debe exponer señales suficientes para verificar que está vivo, que está listo y que se comporta de manera aceptable tras un cambio.
 
-#### Manejo de componentes y dependencias
+### Manejo de componentes y dependencias
 
 >Distinguimos entre componentes y librerías de la siguiente manera: las librerías se refieren a paquetes de software que su equipo no controla, sino que elige cuáles usar. Las librerías generalmente se actualizan con poca frecuencia. En cambio, los componentes son piezas de software de las que depende su aplicación, pero que también son desarrolladas por su equipo u otros equipos de la organización. Los componentes generalmente se actualizan con frecuencia.
 >
@@ -712,7 +811,7 @@ La división en componentes solo tiene sentido si las dependencias entre ellos s
 └──────────────────────────────────────────────────────────────┘
 ```
 
-##### Ciclos
+#### Ciclos
 
 Los ciclos entre componentes son un problema explícito. Una estructura de componentes sana debe evitar dependencias circulares, porque esas dependencias afectan tanto la comprensión del sistema como la capacidad de build, test y release.
 
@@ -754,19 +853,19 @@ Una estructura sin ciclos permite una dirección de dependencias más clara, fac
 
 Un ciclo de dependencias no es solo un problema de orden estructural: incrementa el acoplamiento y reduce la capacidad del sistema para cambiar, probarse y desplegarse con seguridad.
 
-#### Programación Orientada a Aspectos
+### Programación Orientada a Aspectos
 En la Programación Orientada a Aspectos, el código se organiza en torno a **aspectos**, que encapsulan comportamientos específicos que atraviesan múltiples partes de un programa. A diferencia de la Programación Orientada a Objetos (OOP), que se centra en la encapsulación de datos y comportamientos en objetos, la AOP se dedica a modularizar preocupaciones transversales, como el manejo de registros, la seguridad y la gestión de transacciones.
 
-#### Cohesión de paquetes
+### Cohesión de paquetes
 
-###### REP - Reuse/Release Equivalence Principle
+##### REP - Reuse/Release Equivalence Principle
 - El principio de equivalencia entre reutilización y liberación.
 - La idea es que la unidad que reutilizás debería coincidir con la unidad que liberás/versionás.
 - Si un conjunto de clases se reutiliza junto, debería formar un mismo paquete/componente publicable como una unidad coherente.
 
 *La unidad que reutilizás debería coincidir con la unidad que liberás/versionás.*
 
-###### CCP - Common Closure Principle
+##### CCP - Common Closure Principle
 - El principio de cierre común.
 - Las clases que cambian por las mismas razones deberían agruparse en el mismo paquete.
 - Si varias clases suelen modificarse juntas ante un mismo tipo de cambio, conviene que estén cerradas dentro del mismo componente.
@@ -774,7 +873,7 @@ En la Programación Orientada a Aspectos, el código se organiza en torno a **as
 
 *Las clases que cambian por la misma razón deberían agruparse juntas.*
 
-###### CRP - Common Reuse Principle
+##### CRP - Common Reuse Principle
 - El principio de reutilización común.
 - Las clases que se reutilizan juntas deberían estar juntas.
 - Y, en sentido inverso, no deberías depender de clases que no necesitás.
@@ -785,15 +884,15 @@ En la Programación Orientada a Aspectos, el código se organiza en torno a **as
 
 *Robert C. Martin - Clean Architecture*
 
-#### Arquitectura Hexagonal
+### Arquitectura Hexagonal
 
 ![](hexagonal-architecture.png)
 
-#### Motivación
+### Motivación
 
 Uno de los mayores problemas de las aplicaciones de software a lo largo de los años ha sido la infiltración de la lógica empresarial en el código de la interfaz de usuario. Esto genera un problema triple: primero, el sistema no se puede probar de forma eficaz con conjuntos de pruebas automatizadas porque parte de la lógica que se debe probar depende de detalles visuales que cambian con frecuencia, como el tamaño de los campos y la ubicación de los botones; por la misma razón, resulta imposible pasar de un uso del sistema por parte de un usuario a un sistema de ejecución por lotes; y, por la misma razón, resulta difícil o imposible permitir que otro programa controle el programa cuando esto se vuelve conveniente.
 
-#### Naturaleza de la solución
+### Naturaleza de la solución
 
 Tanto los problemas del lado del usuario como los del servidor se deben al mismo error de diseño y programación: la confusión entre la lógica de negocio y la interacción con entidades externas. La asimetría que se debe aprovechar no reside entre la parte izquierda y la derecha de la aplicación, sino entre el interior y el exterior de la misma. La regla fundamental es que el código interno no debe filtrarse al exterior.
 
@@ -816,7 +915,7 @@ El término **puerto y adaptadores** hace referencia a la función de cada compo
 
 [Fuente](https://alistair.cockburn.us/hexagonal-architecture)
 
-#### Arquitectura Limpia
+### Arquitectura Limpia
 
 ![](clean-architecture.jpg)
 
@@ -828,25 +927,25 @@ Cada una de estas arquitecturas produce sistemas que son:
 - Independiente de la base de datos. Puedes reemplazar Oracle o SQL Server por Mongo, BigTable, CouchDB o cualquier otra opción. Tus reglas de negocio no están ligadas a la base de datos.
 - Independiente de cualquier organismo externo. De hecho, sus reglas de negocio simplemente no saben nada del mundo exterior.
 
-##### La regla de dependencia
+#### La regla de dependencia
 
 Esta regla establece que las dependencias del código fuente solo pueden apuntar hacia adentro. Nada dentro de un círculo interno puede tener conocimiento alguno sobre algo dentro de un círculo externo.
 
-##### Entidades
+#### Entidades
 
 Las entidades encapsulan las reglas de negocio de toda la empresa . Una entidad puede ser un objeto con métodos o un conjunto de estructuras de datos y funciones. Lo importante es que las entidades puedan ser utilizadas por diversas aplicaciones dentro de la empresa.
 
-##### Casos de uso
+#### Casos de uso
 
 El software de esta capa contiene reglas de negocio específicas de la aplicación. Encapsula e implementa todos los casos de uso del sistema. Estos casos de uso coordinan el flujo de datos hacia y desde las entidades, y dirigen a dichas entidades para que utilicen sus reglas de negocio corporativas con el fin de alcanzar los objetivos del caso de uso.
 
-##### Adaptadores de interfaz
+#### Adaptadores de interfaz
 
 El software de esta capa consiste en un conjunto de adaptadores que convierten los datos del formato más conveniente para los casos de uso y las entidades, al formato más conveniente para alguna entidad externa, como la base de datos o la web.
 
 Esta capa, por ejemplo, contendrá por completo la arquitectura MVC de una interfaz gráfica de usuario (GUI). Los presentadores, las vistas y los controladores pertenecen a esta capa. Los modelos probablemente sean simplemente estructuras de datos que se pasan de los controladores a los casos de uso, y luego de los casos de uso a los presentadores y las vistas.
 
-##### ¿Solo cuatro círculos?
+#### ¿Solo cuatro círculos?
 
 No, los círculos son esquemáticos. Puede que necesites más de cuatro. No hay ninguna regla que diga que siempre debes tener solo estos cuatro. Sin embargo, la regla de dependencia siempre se aplica. Las dependencias del código fuente siempre apuntan hacia adentro.
 
@@ -1721,11 +1820,11 @@ Las métricas son peligrosas cuando se transforman en objetivos aislados. En ese
 Entendemos el **deployment pipeline** como mecanismo de feedback, trazabilidad y reducción de riesgo.
 El pipeline de despliegue es el patrón clave que permite la entrega continua.
 
-#### ¿Qué problema resuelve?
+### ¿Qué problema resuelve?
 
 El pipeline existe porque integrar código no alcanza. Un sistema puede compilar, pasar unit tests y seguir siendo un candidato de release pobre: puede no arrancar, no desplegarse correctamente, fallar en un entorno más realista o exigir pasos manuales frágiles.
 
-#### Definición
+### Definición
 
 >En un nivel abstracto, una canalización de despliegue es una manifestación automatizada de su proceso para llevar el software desde el control de versiones hasta las manos de sus usuarios.
 >
@@ -1739,7 +1838,7 @@ Humble y Farley definen el deployment pipeline como la manifestación automatiza
 
 Un deployment pipeline es un sistema de validación y promoción de cambios que entrega feedback temprano, conserva trazabilidad y hace rutinario el pasaje de un cambio desde commit hasta release.
 
-#### Qué no es un deployment pipeline
+### Qué no es un deployment pipeline
 
 - no es simplemente un servidor de CI;
 - no es una colección de tareas inconexos;
@@ -1747,7 +1846,7 @@ Un deployment pipeline es un sistema de validación y promoción de cambios que 
 - no es un script de despliegue ejecutado a mano;
 - no es recompilar una y otra vez el mismo código en ambientes distintos;
 
-#### Anatomía mínima del deployment pipeline
+### Anatomía mínima del deployment pipeline
 
 Una implementación básica del pipeline se entiende mejor como una secuencia de etapas que elevan progresivamente la confianza sobre un mismo candidato a release.
 
@@ -1769,7 +1868,7 @@ Una implementación básica del pipeline se entiende mejor como una secuencia de
 - el cambio no avanza por “aprobación administrativa”, sino por evidencia técnica y operativa;
 - y cuanto más avanza, más cara es la validación, por eso conviene filtrar temprano lo que ya está mal.
 
-##### 1. Commit stage
+#### 1. Commit stage
 
 El commit stage es la primera línea de defensa y debe eliminar cuanto antes builds inviables. El objetivo es descubrir rápidamente que algo está roto y no gastar tiempo en un candidato obviamente malo.
 
@@ -1780,7 +1879,7 @@ El commit stage es la primera línea de defensa y debe eliminar cuanto antes bui
 
 Según el libro, esta etapa debería idealmente tardar menos de cinco minutos, y ciertamente no más de diez.
 
-###### El commit stage suele incluir:
+##### El commit stage suele incluir:
 
 - compilación o empaquetado;
 - tests de commit, predominantemente unitarios;
@@ -1789,7 +1888,7 @@ Según el libro, esta etapa debería idealmente tardar menos de cinco minutos, y
 
 La idea importante no es “meter todo en la primera etapa”, sino todo lo que aporte señal temprana con costo bajo.
 
-##### 2. Automated acceptance test gate
+#### 2. Automated acceptance test gate
 
 Esta es la segunda barrera seria del pipeline. El commit stage reduce incertidumbre técnica de bajo nivel; la etapa de aceptación automatizada reduce incertidumbre funcional y operativa básica.
 
@@ -1800,7 +1899,7 @@ Por eso esta etapa:
 - no debe estar “tercerizada” a un equipo separado del desarrollo;
 - y cuando falla, el equipo debe reaccionar de inmediato.
 
-##### 3. Subsequent test stages (Etapas posteriores)
+#### 3. Subsequent test stages (Etapas posteriores)
 
 Después de la aceptación automatizada, el release candidate puede atravesar otras etapas según el dominio y el riesgo:
 
@@ -1818,29 +1917,29 @@ El pipeline no es idéntico en todos los proyectos, pero sí conserva una lógic
 - luego invertir más tiempo y recursos en candidatos que ya demostraron aptitud;
 - y hacer los ambientes progresivamente más parecidos a producción a medida que crece la confianza.
 
-##### 4. Release y despliegue
+#### 4. Release y despliegue
 
 Humble y Farley sostienen que el release debería ser una tarea `push-button`: elegir una versión ya validada y desplegarla de modo repetible. Eso sólo es posible si el proceso de despliegue fue ensayado muchas veces antes, en otros ambientes, con el mismo mecanismo.
 
-###### El libro insiste además en dos ideas centrales:
+##### El libro insiste además en dos ideas centrales:
 
 - tener capacidad de **back-out** o rollback;
 - y tratar configuración, infraestructura y datos como parte del sistema de entrega.
 
-#### Prácticas fundamentales del deployment pipeline
+### Prácticas fundamentales del deployment pipeline
 
-##### 1. Construir los binarios una sola vez
+#### 1. Construir los binarios una sola vez
 
 El mismo artefacto que pasó commit stage y aceptación debe ser el que se promueve entre ambientes.
 
-###### Razones
+##### Razones
 
 - recompilar reintroduce variabilidad;
 - cambia la cadena de confianza;
 - rompe trazabilidad entre lo probado y lo liberado;
 - y hace posible que producción ejecute algo distinto de lo validado.
 
-##### 2. Desplegar del mismo modo en todos los ambientes
+#### 2. Desplegar del mismo modo en todos los ambientes
 
 Usar el mismo proceso de despliegue en desarrollo, testing y producción reduce riesgo porque el procedimiento queda probado continuamente.
 No significa que todos los ambientes sean idénticos en escala o permisos. Significa que:
@@ -1848,7 +1947,7 @@ No significa que todos los ambientes sean idénticos en escala o permisos. Signi
 - la configuración debe variar externamente;
 - y el pipeline no debe depender de “pasos especiales para producción”.
 
-##### 3. Separar binario y configuración
+#### 3. Separar binario y configuración
 
 Una consecuencia directa de promover el mismo artefacto es separar lo invariante de lo específico del ambiente.
 
@@ -1856,7 +1955,7 @@ Una consecuencia directa de promover el mismo artefacto es separar lo invariante
 - la configuración no debería quedar embebida de manera rígida en el artefacto;
 - y si el sistema sólo funciona cuando alguien “lo acomoda a mano”, el pipeline no está resuelto.
 
-##### 4. Hacer visible el estado del pipeline
+#### 4. Hacer visible el estado del pipeline
 
 El propósito del pipeline no es sólo bloquear. También debe dar visibilidad:
 
@@ -1866,7 +1965,7 @@ El propósito del pipeline no es sólo bloquear. También debe dar visibilidad:
 - cuánto tardan las etapas;
 - y dónde están los cuellos de botella.
 
-##### 5. Medir para optimizar el flujo completo
+#### 5. Medir para optimizar el flujo completo
 
 - un pipeline sirve para validar cambios;
 - pero también para descubrir fricciones del proceso de entrega;
@@ -1874,7 +1973,7 @@ El propósito del pipeline no es sólo bloquear. También debe dar visibilidad:
 
 La pregunta de fondo es: “¿cuánto tarda un cambio en volverse liberable y llegar a usuarios?”.
 
-##### 6. Diseñar release y rollback como procesos repetibles
+#### 6. Diseñar release y rollback como procesos repetibles
 
 Un release serio no depende de heroicidad ni memoria individual. Debe tener:
 
@@ -1886,7 +1985,7 @@ Un release serio no depende de heroicidad ni memoria individual. Debe tener:
 
 El libro insiste en que no debe existir un proceso distinto para hacer rollback: cuanto menos practicado esté, menos confiable será.
 
-#### Smoke tests y validación post-deploy
+### Smoke tests y validación post-deploy
 
 Un despliegue no se considera exitoso porque el script terminó en verde. Debe existir una validación mínima posterior, por ejemplo:
 
@@ -1895,7 +1994,7 @@ Un despliegue no se considera exitoso porque el script terminó en verde. Debe e
 - puede ejecutar su caso de uso más elemental;
 - y sus dependencias críticas están operativas.
 
-#### Anti-patrones frecuentes
+### Anti-patrones frecuentes
 
 - **Recompilar en cada ambiente**: destruye la garantía de que lo liberado es exactamente lo que se probó.
 - **Promover código fuente en lugar de artefactos**: si en cada ambiente se reconstruye, ya no existe una cadena confiable entre evidencia y release.
@@ -1911,11 +2010,11 @@ Un despliegue no se considera exitoso porque el script terminó en verde. Debe e
 
 ## Integración de scripts DDL y configuración de entornos al esquema de despliegue continuo
 
-#### Breve introducción: DDL, DML y DCL
+### Breve introducción: DDL, DML y DCL
 
 SQL se organiza en sublenguajes según el tipo de operación que realizan. Tres de los más relevantes para entender qué tipo de cambios afectan a la base de datos y cómo gestionarlos en un pipeline son:
 
-###### DDL — Data Definition Language
+##### DDL — Data Definition Language
 
 Son las sentencias que definen o modifican la estructura de la base de datos: tablas, columnas, índices, constraints, vistas, esquemas.
 
@@ -1925,7 +2024,7 @@ Son las sentencias que definen o modifican la estructura de la base de datos: ta
 
 Los cambios DDL modifican el esquema. Son los que más impacto tienen en el despliegue porque suelen ser difíciles de revertir y pueden romper la compatibilidad con el código que lee o escribe datos.
 
-###### DML — Data Manipulation Language
+##### DML — Data Manipulation Language
 
 Son las sentencias que operan sobre los datos dentro de la estructura existente.
 
@@ -1933,7 +2032,7 @@ Son las sentencias que operan sobre los datos dentro de la estructura existente.
 
 Los cambios DML no modifican el esquema, pero sí pueden ser relevantes para el pipeline cuando se trata de datos de referencia, datos de configuración o migraciones de datos que acompañan un cambio de esquema (por ejemplo, poblar una columna nueva con valores calculados a partir de una columna vieja).
 
-###### DCL — Data Control Language
+##### DCL — Data Control Language
 
 Son las sentencias que gestionan permisos y acceso.
 
@@ -1941,7 +2040,7 @@ Son las sentencias que gestionan permisos y acceso.
 
 Los cambios DCL son menos frecuentes en el flujo de desarrollo, pero importan cuando el pipeline necesita que el usuario de la aplicación tenga los permisos correctos en cada entorno. Un despliegue que falla porque "la app no tiene permisos para leer esa tabla" es un problema de DCL no gestionado.
 
-##### ¿Por qué importa esta distinción para entrega continua?
+#### ¿Por qué importa esta distinción para entrega continua?
 
 Porque cada tipo de cambio tiene un perfil de riesgo distinto:
 
@@ -1961,7 +2060,7 @@ Esta sesión aborda dos problemas que suelen tratarse como secundarios pero que 
 - cómo gestionar los cambios de esquema de base de datos como parte del pipeline;
 - y cómo tratar la configuración de entornos como un artefacto versionable, verificable y repetible.
 
-#### ¿Por qué la base de datos suele quedar fuera del pipeline?
+### ¿Por qué la base de datos suele quedar fuera del pipeline?
 
 Hay razones técnicas y culturales:
 
@@ -1975,7 +2074,7 @@ El resultado es que el cambio de base de datos se convierte en un evento excepci
 
 >Un problema frecuente es que muchos proyectos y organizaciones no tratan las bases de datos como tratarían cualquier otro componente del sistema: bajo control de versiones, con pruebas y con posibilidad de recrear el esquema y los datos de referencia desde cero.
 
-#### La base de datos como parte del sistema entregable
+### La base de datos como parte del sistema entregable
 
 La base de datos no es un recurso externo al sistema de entrega, sino una parte constitutiva de lo que se despliega. Esto implica que:
 - los cambios de esquema deben estar bajo control de versiones;
@@ -1985,9 +2084,9 @@ La base de datos no es un recurso externo al sistema de entrega, sino una parte 
 
 Tratar la base de datos como parte del sistema entregable no significa que el DBA desaparezca o que se elimine toda revisión humana. Significa que el cambio de esquema deja de ser un proceso artesanal desconectado del pipeline y pasa a ser un artefacto más que se versiona, se prueba y se promueve junto con el código.
 
-#### Principios para gestionar cambios de base de datos en entrega continua
+### Principios para gestionar cambios de base de datos en entrega continua
 
-##### 1. Versionar todo cambio de esquema
+#### 1. Versionar todo cambio de esquema
 
 Cada modificación del esquema, ya sea una creación de tabla, un agregado de columna, un cambio de tipo o una eliminación de índice, debe estar representada como un archivo de migración versionado y almacenado en el mismo repositorio que el código de la aplicación.
 
@@ -1999,7 +2098,7 @@ Esto tiene varias consecuencias prácticas:
 - se puede saber exactamente qué versión de esquema corresponde a qué versión del código;
 - y se puede reproducir el estado de la base de datos en cualquier entorno.
 
-##### 2. Tratar las migraciones como código
+#### 2. Tratar las migraciones como código
 
 Las migraciones no son "scripts que alguien ejecuta". Son código que forma parte del sistema y que debe cumplir los mismos estándares:
 
@@ -2019,7 +2118,7 @@ migrations/
 
 Cada archivo representa un cambio atómico, ordenado y trazable. El pipeline puede ejecutar todas las migraciones pendientes de forma secuencial y verificar que el esquema resultante es consistente.
 
-##### 3. Hacer cambios aditivos y compatibles
+#### 3. Hacer cambios aditivos y compatibles
 
 Idealmente se busca desacoplar el despliegue de la aplicación de la migración de la base de datos.
 
@@ -2030,7 +2129,7 @@ Este es uno de los principios más importantes y más difíciles de aplicar. Un 
 - no cambiar tipos de datos de forma destructiva;
 - y, cuando sea necesario un cambio destructivo, hacerlo en fases.
 
-###### Ejemplo: renombrar una columna
+##### Ejemplo: renombrar una columna
 
 Un cambio destructivo sería renombrar directamente `user_name` a `username`. Si el código viejo busca `user_name` y el esquema ya cambió, el sistema se rompe.
 
@@ -2067,7 +2166,7 @@ Fase 2: eliminación segura
 
 Esta lógica es la misma que *branch by abstraction* pero aplicada al esquema: se introduce el cambio de forma gradual, se mantiene compatibilidad transitoria y se limpia después.
 
-##### 4. Integrar las migraciones al pipeline
+#### 4. Integrar las migraciones al pipeline
 
 Las migraciones deben ejecutarse como parte del pipeline, no como un paso manual previo o posterior al despliegue.
 
@@ -2095,7 +2194,7 @@ En la práctica, esto implica que el commit stage o una etapa temprana del pipel
 └──────────────┘    └────────────────────┘    └──────────────────────┘
 ```
 
-##### 5. Contemplar rollback o mitigación
+#### 5. Contemplar rollback o mitigación
 
 No toda migración es reversible. Agregar una columna es fácil de revertir; eliminar una tabla con datos no lo es. El libro reconoce esta asimetría y propone que el equipo piense en cada migración en términos de reversibilidad:
 
@@ -2113,7 +2212,7 @@ migrations/
 
 La pregunta no es "¿puedo revertir siempre?" sino "¿qué hago cuando no puedo revertir?". Y la respuesta de *Continuous Delivery* es: diseñar el cambio para que no necesite reversión completa, usando fases, compatibilidad transitoria y validación previa.
 
-#### Herramientas y mecanismos de migración
+### Herramientas y mecanismos de migración
 
 Propiedades que debe tener el mecanismo de migración:
 
@@ -2131,10 +2230,10 @@ Ejemplos de herramientas que implementan estos principios:
 | EF Migrations | .NET | Migraciones generadas desde el modelo de datos |
 | Knex/Prisma | Node.js | Migraciones SQL o declarativas |
 
-##### Ejemplo real del proyecto Liga Libre
+#### Ejemplo real del proyecto Liga Libre
 ![](ef-migrations.png)
 
-#### Anti-patrones en la gestión de cambios de base de datos
+### Anti-patrones en la gestión de cambios de base de datos
 
 - **Scripts manuales sin versionar**: un DBA ejecuta cambios directamente en producción sin registro en el repositorio. Si no está versionado, no existe para el pipeline.
 - **Migraciones que asumen un estado particular del esquema sin verificarlo**: una migración que falla si el entorno no tiene exactamente el estado esperado, sin manejar variantes.
@@ -2149,7 +2248,7 @@ Además, cada cambio aplicado a la base de datos debería ser idempotente: si se
 
 Cada aplicación necesita información diferente según el entorno en el que se ejecuta. Estos elementos deben gestionarse con cuidado. La configuración debe almacenarse con la aplicación pero separada de ella, de manera que la instancia que se despliega en cada entorno pueda configurarse adecuadamente.
 
-#### El problema
+### El problema
 
 La configuración de entornos abarca todo aquello que varía entre ambientes pero que es necesario para que el sistema funcione:
 
@@ -2163,9 +2262,9 @@ Cuando esta configuración no está gestionada de forma explícita, el equipo de
 
 Un anti-patrón común es tener configuraciones diferentes en entornos diferentes que no están bajo control de versiones. Esto crea un riesgo considerable: nadie puede reproducir exactamente la configuración de producción, y nadie puede estar seguro de que el entorno de pruebas refleja las condiciones reales.
 
-#### Principios para gestionar configuración de entornos
+### Principios para gestionar configuración de entornos
 
-##### 1. Separar configuración del artefacto
+#### 1. Separar configuración del artefacto
 
 El artefacto desplegable debe ser el mismo en todos los entornos. Lo que cambia es la configuración que se le inyecta.
 
@@ -2186,13 +2285,13 @@ Bien: configuración externa
   (el artefacto es el mismo, la configuración varía)
 ```
 
-##### 2. Versionar la configuración
+#### 2. Versionar la configuración
 
 La configuración debe estar bajo control de versiones. No necesariamente en el mismo repositorio que el código (los secretos, por ejemplo, no deberían estar en texto plano en el repo), pero sí debe existir un registro trazable de qué configuración se aplicó en cada entorno y cuándo.
 
 La gestión de la configuración es una de las áreas que más tienden a descuidarse, y sin embargo es una de las causas más frecuentes de fallas en el despliegue.
 
-##### 3. Verificar la configuración en el pipeline
+#### 3. Verificar la configuración en el pipeline
 
 Si la configuración es parte del sistema entregable, debe verificarse como cualquier otro componente. Humble y Farley proponen explícitamente testear la configuración del entorno.
 
@@ -2204,7 +2303,7 @@ Ejemplos de verificaciones:
 - **validación de esquema de configuración**: verificar que todas las variables requeridas están presentes y tienen el tipo esperado;
 - **drift detection**: comparar la configuración declarada con la configuración efectiva del entorno.
 
-##### 4. Gestionar secretos de forma separada
+#### 4. Gestionar secretos de forma separada
 
 Las contraseñas y la información sensible no deberían almacenarse en texto plano en el sistema de control de versiones, deben gestionarse de forma separada del resto de la configuración. Se recomienda que las credenciales sean provistas por el equipo de operaciones o administración y que el acceso a ellas esté restringido.
 
@@ -2220,7 +2319,7 @@ config/
 Los valores reales de secretos se inyectan desde el vault o el pipeline.
 ```
 
-##### 5. Reproducibilidad del entorno
+#### 5. Reproducibilidad del entorno
 
 Un entorno bien gestionado es aquel que puede recrearse desde sus definiciones, sin depender de configuración manual acumulada. Esto implica:
 
@@ -2232,7 +2331,7 @@ Los ambientes y su configuración deben tratarse como código: versionados, audi
 
 Cuando un entorno no puede recrearse de forma confiable, el equipo pierde la capacidad de hacer rollback efectivo, de crear entornos de prueba realistas y de diagnosticar diferencias entre lo que funciona en un ambiente y lo que falla en otro.
 
-#### Configuración y el pipeline de despliegue
+### Configuración y el pipeline de despliegue
 
 La relación entre configuración y pipeline se resume así:
 
@@ -2271,7 +2370,7 @@ La relación entre configuración y pipeline se resume así:
         mismo artefacto → distinta configuración → mismo proceso
 ```
 
-#### Gestión conjunta: esquema + configuración + código
+### Gestión conjunta: esquema + configuración + código
 
 El objetivo es que estos tres elementos deben avanzar juntos y de forma coordinada a través del pipeline:
 
@@ -2283,37 +2382,37 @@ El objetivo es que estos tres elementos deben avanzar juntos y de forma coordina
 
 Cuando alguno de estos tres elementos queda fuera del pipeline, se introduce un punto ciego. Y los puntos ciegos tienden a manifestarse en el peor momento: durante un despliegue a producción, bajo presión, cuando menos capacidad de diagnóstico hay.
 
-###### Ejemplo de verificación del elemento Código
+##### Ejemplo de verificación del elemento Código
 - [Repositorio](https://github.com/emigallo-edu/liga-libre/blob/main/Tests/Test.Acceptance/CreateTournamentAcceptanceTest.cs)
 - [commit-stage](https://github.com/emigallo-edu/liga-libre/actions/runs/24457505543)
 
 
-###### Ejemplo de verificación del elemento Esquema de BD
+##### Ejemplo de verificación del elemento Esquema de BD
 - [Repositorio](https://github.com/emigallo-edu/liga-libre/blob/main/Api/Controllers/DeploymentController.cs)
 - [Pipeline](https://github.com/emigallo-edu/liga-libre/blob/main/.github/workflows/acceptance-test.yml)
 - [acceptance-tests](https://github.com/emigallo-edu/liga-libre/actions/runs/24459880428/job/71471724426)
 
-###### Ejemplo de verificación del elemento Configuración
+##### Ejemplo de verificación del elemento Configuración
 - [Repositorio](https://github.com/emigallo-edu/liga-libre/blob/main/Tests/Test.Smoke/ApiSmokeTest.cs)
 - [acceptance-tests](https://github.com/emigallo-edu/liga-libre/actions/runs/24459880428/job/71471724426)
 
-#### Verificaciones recomendadas
+### Verificaciones recomendadas
 
-##### Para cambios de esquema
+#### Para cambios de esquema
 
 - ¿La migración se ejecuta correctamente sobre el esquema actual?
 - ¿El esquema resultante es compatible con la versión actual del código y con la versión nueva?
 - ¿Existe script de rollback? ¿Fue probado?
 - ¿Los tests de integración pasan con el nuevo esquema?
 
-##### Para configuración de entornos
+#### Para configuración de entornos
 
 - ¿Todas las variables requeridas están definidas?
 - ¿La aplicación puede conectarse a sus dependencias con la configuración proporcionada?
 - ¿Los valores de configuración son consistentes entre sí?
 - ¿La configuración efectiva del entorno coincide con la declarada?
 
-#### Anti-patrones frecuentes
+### Anti-patrones frecuentes
 
 - **Configuración gestionada solo en el servidor**: si la configuración vive únicamente en archivos del servidor y no está versionada, nadie puede reproducir el entorno ni auditar cambios.
 - **Secretos en el repositorio**: almacenar credenciales en texto plano en el código fuente es un riesgo de seguridad y un anti-patrón operativo.
@@ -2321,7 +2420,7 @@ Cuando alguno de estos tres elementos queda fuera del pipeline, se introduce un 
 - **Configuración como excusa para no probar**: "no se puede probar porque depende de la configuración de producción" es una señal de que la configuración no está separada correctamente.
 - **Migraciones que solo se prueban en producción**: si la primera vez que una migración se ejecuta contra datos reales es en producción, el equipo asumió un riesgo que el pipeline debería haber mitigado.
 
-#### Síntesis
+### Síntesis
 
 La integración de cambios de esquema y configuración de entornos al pipeline de despliegue no es un tema accesorio o avanzado. Es una condición básica para que la entrega continua sea real y no nominal. Un equipo que versiona y valida su código pero gestiona su base de datos y sus entornos de forma manual tiene un pipeline incompleto, con puntos ciegos que se manifiestan como fallas en producción.
 
@@ -2329,7 +2428,7 @@ La capacidad de delivery depende también de configuración, infraestructura, sc
 
 ## Feature flags
 
-#### Desacoplar deploy de release
+### Desacoplar deploy de release
 
 Una de las ideas centrales del libro de Humble y Farley es que *deploy* y *release* son dos actos distintos:.
 
@@ -2340,7 +2439,7 @@ Cuando estos dos actos están acoplados, desplegar implica necesariamente que lo
 
 La estrategia que propone *Continuous Delivery* es invertir esta relación: que desplegar sea barato y frecuente, pero que la activación de cada funcionalidad sea una decisión separada, controlada, reversible y, en lo posible, granular.
 
-#### Panorama de estrategias de release
+### Panorama de estrategias de release
 
 | Estrategia | Qué hace | Cuándo aplica |
 |------------|----------|---------------|
@@ -2351,7 +2450,7 @@ La estrategia que propone *Continuous Delivery* es invertir esta relación: que 
 
 Esta sesión se enfoca en la última, por ser la que más directamente habilita trabajar en trunk con integración frecuente sin exponer trabajo en progreso.
 
-#### Feature flags: definición y rol
+### Feature flags: definición y rol
 
 Un *feature flag* (o *feature toggle*) es un mecanismo de configuración que permite activar o desactivar un fragmento de funcionalidad sin modificar ni redesplegar el código. El código de la funcionalidad vive en el artefacto desplegado, pero su ejecución queda condicionada a un valor de configuración que se puede cambiar en caliente o por entorno.
 
@@ -2372,7 +2471,7 @@ La estructura es trivial. Lo relevante no es el `if`, sino lo que permite:
 - realizar experimentos controlados (A/B testing);
 - y separar la decisión técnica de desplegar de la decisión de negocio de liberar.
 
-#### Trunk-based development y feature flags
+### Trunk-based development y feature flags
 
 Humble y Farley defienden explícitamente el trabajo sobre la rama principal (trunk-based development) frente al uso de ramas de funcionalidad de larga duración. Las ramas largas acumulan divergencia, retrasan la integración, demoran el feedback y convierten cada merge en un evento arriesgado.
 
@@ -2393,7 +2492,7 @@ Ramas largas:                   Trunk + flags:
           merge doloroso
 ```
 
-#### Tipos de feature flags
+### Tipos de feature flags
 
 No todos los flags cumplen el mismo propósito. Una categorización útil, popularizada por Pete Hodgson en [Feature Toggles (aka Feature Flags)](https://martinfowler.com/articles/feature-toggles.html), distingue cuatro tipos según su duración y dinamismo:
 
@@ -2406,7 +2505,7 @@ No todos los flags cumplen el mismo propósito. Una categorización útil, popul
 
 La distinción importa porque el costo de mantenimiento, la granularidad de control y el mecanismo de decisión cambian según el tipo. Un release toggle que queda activo dos años en el código no es un release toggle: es deuda técnica disfrazada.
 
-#### Ciclo de vida de un feature flag
+### Ciclo de vida de un feature flag
 
 Un flag de release tiene un ciclo de vida corto y deliberado:
 
@@ -2426,9 +2525,9 @@ El paso que más se descuida es el 6. Un flag olvidado significa:
 
 La limpieza no es una tarea opcional posterior: es parte del trabajo de entregar la funcionalidad. Un flag sin fecha tentativa de retiro probablemente no debería haberse introducido como release toggle.
 
-#### Implementación: lo mínimo y lo deseable
+### Implementación: lo mínimo y lo deseable
 
-##### Lo mínimo
+#### Lo mínimo
 
 Un flag puede implementarse con una variable de configuración leída al inicio:
 
@@ -2444,7 +2543,7 @@ if (flags.NewCheckoutFlow) { ... } else { ... }
 
 Esto alcanza para un release toggle simple, estático por entorno, que se activa al cambiar la configuración y redesplegar (o recargar).
 
-##### Lo deseable
+#### Lo deseable
 
 A medida que los flags cumplen roles más dinámicos (canary, A/B, kill switch operativo), la implementación requiere:
 
@@ -2456,7 +2555,7 @@ A medida que los flags cumplen roles más dinámicos (canary, A/B, kill switch o
 
 Existen servicios especializados y también soluciones construidas sobre almacenes de configuración ya existentes. La decisión entre construir o adoptar depende del volumen de flags, la granularidad deseada y el costo operativo que el equipo esté dispuesto a asumir.
 
-#### Feature flags y testing
+### Feature flags y testing
 
 Los flags introducen una tensión con la estrategia de pruebas. Cada flag agrega una dimensión de combinación:
 
@@ -2476,7 +2575,7 @@ Probar el producto cartesiano completo es inviable y, además, innecesario. La p
 
 Cuando dos flags sí interactúan, esa interacción es una señal de acoplamiento que conviene tratar como parte del diseño, no como un caso de prueba más.
 
-#### Observabilidad y feature flags
+### Observabilidad y feature flags
 
 Un flag que no puede observarse no sirve como mecanismo de control operativo. Para que un flag funcione como kill switch o como herramienta de rollout, el equipo necesita poder responder, en tiempo real:
 
@@ -2486,7 +2585,7 @@ Un flag que no puede observarse no sirve como mecanismo de control operativo. Pa
 
 Sin estas tres capacidades, apagar un flag ante un incidente se vuelve un acto de fe.
 
-#### Anti-patrones frecuentes
+### Anti-patrones frecuentes
 
 - **Flags permanentes que nacieron como temporales**: un release toggle que lleva dos años en el código ya no es un toggle, es un `if` estructural que nadie revisa.
 - **Proliferación sin inventario**: el equipo no sabe cuántos flags existen, cuáles están activos, quién los creó ni cuándo deberían retirarse.
@@ -2497,7 +2596,7 @@ Sin estas tres capacidades, apagar un flag ante un incidente se vuelve un acto d
 - **Flags en el repositorio como la única fuente**: si cambiar un flag requiere un deploy, se pierde la ventaja principal de desacoplar release de deploy.
 - **Acoplar flags a usuarios específicos en el código**: hardcodear que "el usuario X ve la funcionalidad Y" en lugar de modelar segmentación.
 
-#### Síntesis
+### Síntesis
 
 Los feature flags no son una herramienta aislada: son el mecanismo operativo que hace posible mantener la rama principal siempre desplegable sin que eso obligue a exponer cada cambio al usuario final. Son, junto con branch by abstraction y la separación entre deploy y release, una de las condiciones prácticas para que la entrega continua funcione en sistemas no triviales.
 
@@ -2509,7 +2608,7 @@ La infraestructura sobre la que corre un sistema es tan parte del sistema entreg
 
 La idea de tratar la infraestructura como código (IaC) extiende a servidores, redes, almacenamiento, DNS, balanceadores, reglas de firewall y cualquier otro recurso operativo el principio que ya habíamos aplicado al código, al esquema de base de datos y a la configuración de entornos: si no está versionado, no es reproducible; si no es reproducible, no es confiable.
 
-#### El problema que resuelve
+### El problema que resuelve
 
 Cuando la infraestructura se construye y modifica manualmente, cada entorno tiende a divergir. Los servidores acumulan ajustes puntuales —un parche aplicado en una madrugada, un paquete instalado a mano, un permiso modificado para resolver un incidente— que nadie documenta y que, con el tiempo, nadie recuerda.
 
@@ -2523,7 +2622,7 @@ Los problemas operativos derivados son concretos:
 - cambios de infraestructura que no pueden revisarse ni auditarse;
 - dependencia de personas específicas que "saben cómo está armado".
 
-#### Definición
+### Definición
 
 Infraestructura como código significa tratar la definición de la infraestructura —máquinas, redes, configuraciones de sistema operativo, dependencias de plataforma— como artefactos de software: escritos en archivos de texto, versionados en un repositorio, revisados mediante el mismo proceso que el código de la aplicación y aplicados a los entornos mediante procesos automatizados.
 
@@ -2534,27 +2633,27 @@ La distinción clave no es qué herramienta se usa, sino qué propiedades cumple
 - **reproducible**: desde las definiciones versionadas, cualquier persona autorizada debe poder recrear el entorno completo;
 - **auditable**: todo cambio queda registrado en el historial del repositorio, con autor, momento y motivo.
 
-#### Principios para gestionar infraestructura como código
+### Principios para gestionar infraestructura como código
 
-##### 1. Versionar las definiciones de infraestructura
+#### 1. Versionar las definiciones de infraestructura
 
 Todo archivo que describa la infraestructura —manifiestos, playbooks, templates, scripts de provisioning— debe vivir en control de versiones. Esto incluye definiciones de servidores, redes, reglas de acceso, configuración de servicios gestionados y dependencias del sistema operativo.
 
 El criterio es el mismo que aplica a la configuración: si no está en el repositorio, no es reproducible, y si no es reproducible, no puede formar parte de la cadena de confianza del pipeline.
 
-##### 2. Automatizar el aprovisionamiento
+#### 2. Automatizar el aprovisionamiento
 
 La creación de un entorno debe ser un proceso automatizado que parta de un estado conocido —una imagen base, un sistema operativo recién instalado— y aplique las definiciones versionadas hasta alcanzar el estado deseado.
 
 El aprovisionamiento manual no es un paso previo legítimo a la automatización: es una fuente de divergencia. Cada intervención manual sobre un entorno automatizado introduce una diferencia entre la definición declarada y el estado efectivo del sistema.
 
-##### 3. Tratar los servidores como ganado, no como mascotas
+#### 3. Tratar los servidores como ganado, no como mascotas
 
 Esta formulación, atribuida a Bill Baker y popularizada en la comunidad de DevOps, captura un cambio de postura: los servidores no son entidades individuales a las que se cuida, nombra y repara; son instancias intercambiables que se destruyen y recrean según haga falta.
 
 Un servidor que falla no se diagnostica *in situ*: se reemplaza por otro construido desde la misma definición. Este enfoque solo es viable cuando la definición del entorno es completa y el proceso de aprovisionamiento, confiable.
 
-##### 4. Probar los cambios de infraestructura
+#### 4. Probar los cambios de infraestructura
 
 Los cambios de infraestructura deben validarse antes de aplicarse a producción, igual que los cambios de código. Esto incluye:
 
@@ -2562,13 +2661,13 @@ Los cambios de infraestructura deben validarse antes de aplicarse a producción,
 - ejecutar pruebas de humo sobre el entorno recién provisionado (servicios accesibles, puertos correctos, permisos efectivos);
 - correr las pruebas de aceptación de la aplicación sobre el entorno provisionado, para detectar incompatibilidades entre cambios de infraestructura y comportamiento esperado del sistema.
 
-##### 5. Integrar la infraestructura al pipeline
+#### 5. Integrar la infraestructura al pipeline
 
 Un cambio en la definición de infraestructura debe pasar por el mismo pipeline que un cambio de código: disparar una build, ejecutar validaciones, promoverse entre etapas y aplicarse a producción con trazabilidad.
 
 Esto implica que el pipeline no solo compila y despliega la aplicación: también reconstruye o actualiza los entornos donde la aplicación corre.
 
-##### 6. Separar provisioning, configuración y despliegue
+#### 6. Separar provisioning, configuración y despliegue
 
 Conviene distinguir tres capas, aunque en la práctica muchas herramientas cubran varias:
 
@@ -2576,7 +2675,7 @@ Conviene distinguir tres capas, aunque en la práctica muchas herramientas cubra
 - **configuración**: instalación de dependencias, ajuste del sistema operativo, configuración de servicios base;
 - **despliegue**: colocación del artefacto de la aplicación sobre la infraestructura ya preparada.
 
-#### Relación con el pipeline de despliegue
+### Relación con el pipeline de despliegue
 
 Cuando la infraestructura se gestiona como código, el pipeline pasa a tener una dimensión adicional: además de construir el artefacto de la aplicación y promoverlo entre entornos, valida y aplica los cambios de infraestructura.
 
@@ -2609,7 +2708,7 @@ Cuando la infraestructura se gestiona como código, el pipeline pasa a tener una
 
 La diferencia entre entornos deja de ser una característica estructural —cada entorno es distinto— y pasa a ser paramétrica: los entornos ejecutan las mismas definiciones con valores específicos (tamaño de máquinas, cantidad de réplicas, endpoints). Esto acerca staging y producción al punto en que un problema reproducible en staging es, con alta probabilidad, un problema real.
 
-#### Anti-patrones frecuentes
+### Anti-patrones frecuentes
 
 - **Scripts de provisioning sin versionar**: archivos que viven en el escritorio de alguien, en un wiki o en una carpeta compartida. Cumplen la forma de IaC pero no la función: no son reproducibles ni auditables.
 - **IaC aplicada solo la primera vez**: la infraestructura se construye con la definición, pero los cambios posteriores se hacen a mano. La definición deja de reflejar el estado real y, con el tiempo, se vuelve inutilizable.
@@ -2618,7 +2717,7 @@ La diferencia entre entornos deja de ser una característica estructural —cada
 - **Probar la IaC solo en producción**: aplicar cambios de infraestructura por primera vez al entorno productivo repite el patrón que ya vimos con migraciones de base de datos y con configuración.
 - **Mezclar secretos en las definiciones de infraestructura**: los secretos deben inyectarse desde un mecanismo separado, igual que en la configuración de la aplicación.
 
-#### Síntesis
+### Síntesis
 
 Tratar la infraestructura como código no es una modernización estética ni una cuestión de herramientas. Es una consecuencia directa del principio general de entrega continua: todo lo que condiciona el comportamiento del sistema en producción debe estar versionado, ser reproducible y formar parte del pipeline. Código, esquema, configuración e infraestructura comparten la misma cadena de confianza; si cualquiera de ellos queda fuera, el pipeline tiene un punto ciego, y los puntos ciegos aparecen como incidentes cuando la reproducibilidad más hace falta.
 
